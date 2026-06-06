@@ -1,10 +1,15 @@
 import AppKit
+
 // main logic here
 final class OverlayController {
   private var window: OverlayWindow?
   private var dotView: DotView?
   private var trackingTimer: Timer?
   private var isEnabled = true
+  
+  private var scrollMonitor: Any?
+  private var scrollTimer: Timer?
+  
   
   // dot settings
   // to change in app delegate
@@ -44,6 +49,20 @@ final class OverlayController {
     // macos loops this cycle and checks - is there new event of mouse, timer, system messages
     // common - mode where timer works all the time even when the user scrolls or drags windows
     RunLoop.main.add(trackingTimer!, forMode: .common) // need to remove force unwrap
+    
+    scrollMonitor = NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel) { [weak self] _ in
+      self?.handleScroll()
+      
+    }
+  }
+  
+  private func handleScroll() {
+    dotView?.shape = .square
+    
+    scrollTimer?.invalidate()
+    scrollTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false) { [weak self] _ in
+      self?.dotView?.shape = .circle
+    }
   }
   
   private func updateDotPosition() {
@@ -70,6 +89,11 @@ final class OverlayController {
   func stop() {
     trackingTimer?.invalidate()
     trackingTimer = nil
+    scrollTimer?.invalidate()
+    
+    if let scrollMonitor {
+      NSEvent.removeMonitor(scrollMonitor)
+    }
     
     // orderOut removes window from screen (but not from storage)
     // nil - without animation

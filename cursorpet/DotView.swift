@@ -1,5 +1,18 @@
 import AppKit
 
+// modes
+// hello when opened
+// not in xcode (if xcode is active and installed app) - angry
+// xcode project build success - happy
+// xcode project build fail - sad
+// xcode project building - building
+// scrolling - reading
+// idle - when nothing happes - no scroll, no xcode building - no typing - thinking
+// main mode - just on laptop 
+enum DotShape {
+  case circle, square
+}
+
 final class DotView: NSView {
   var color: NSColor = .systemRed {
     
@@ -13,6 +26,10 @@ final class DotView: NSView {
       frame.size = CGSize(width: size, height: size)
       needsDisplay = true
     }
+  }
+  
+  var shape: DotShape = .circle {
+    didSet { needsDisplay = true }
   }
   
   override init(frame frameRect: NSRect) {
@@ -37,10 +54,24 @@ final class DotView: NSView {
     let inset: CGFloat = 1
     let rect = bounds.insetBy(dx: inset, dy: inset)
     context.setFillColor(color.cgColor)
-    context.fillEllipse(in: rect)
     
-    context.setStrokeColor(NSColor.white.withAlphaComponent(0.6).cgColor)
-    context.setLineWidth(1)
-    context.strokeEllipse(in: rect)
+    switch shape {
+    case .circle:
+      context.fillEllipse(in: rect)
+      context.setStrokeColor(NSColor.white.withAlphaComponent(0.6).cgColor)
+      context.setLineWidth(1)
+      context.strokeEllipse(in: rect)
+      
+    case .square:
+      let path = CGPath(roundedRect: rect, cornerWidth: 3, cornerHeight: 3, transform: nil)
+      context.addPath(path)
+      context.fillPath()
+      context.setStrokeColor(NSColor.white.withAlphaComponent(0.6).cgColor)
+      context.setLineWidth(1)
+      context.addPath(path)
+      context.strokePath()
+    }
+    
+
   }
 }
