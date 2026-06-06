@@ -1,17 +1,16 @@
-//
-//  cursorpetApp.swift
-//  cursorpet
-//
-//  Created by NS on 6/4/26.
-//
-
 import SwiftUI
 
 @main
 struct cursorpetApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  
+  // instance of app delegate
+  // registering app delegate as delegate for nsapplication
+  // without this applicationDidFinishLaunching never will be called
+  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+  
+  var body: some Scene {
+    Settings {
+      EmptyView()
     }
+  }
 }
