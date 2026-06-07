@@ -3,7 +3,7 @@ import AppKit
 // main logic here
 final class OverlayController {
   private var window: OverlayWindow?
-  private var dotView: DotView?
+  private var dotView: CursorOverlayView?
   private var trackingTimer: Timer?
   private var isEnabled = true
   
@@ -24,7 +24,7 @@ final class OverlayController {
   
   private func setupWindow() {
     window = OverlayWindow()
-    dotView = DotView(frame: NSRect(x: 0, y: 0, width: dotSize, height: dotSize))
+    dotView = CursorOverlayView(frame: NSRect(x: 0, y: 0, width: 64, height: 64))
     dotView?.color = dotColor
     dotView?.size = dotSize
     
@@ -57,11 +57,11 @@ final class OverlayController {
   }
   
   private func handleScroll() {
-    dotView?.shape = .square
+    dotView?.content = .shape(.square)
     
     scrollTimer?.invalidate()
     scrollTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false) { [weak self] _ in
-      self?.dotView?.shape = .circle
+      self?.dotView?.content = .shape(.circle)
     }
   }
   
