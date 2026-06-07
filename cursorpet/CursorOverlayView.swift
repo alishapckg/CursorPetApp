@@ -8,7 +8,7 @@ enum CursorContent {
 }
 
 final class CursorOverlayView: NSView {
-  var content: CursorContent = .shape(.cirle) {
+  var content: CursorContent = .shape(.circle) {
     didSet { applyContent() }
   }
   
