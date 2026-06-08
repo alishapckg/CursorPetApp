@@ -5,7 +5,6 @@ struct StateRow: View {
   
   let state: BuddyState
   @ObservedObject var stateManager: StateManager
-
   
   var hasCustom: Bool {
     stateManager.hasCustomFile(for: state)
