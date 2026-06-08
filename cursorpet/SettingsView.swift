@@ -1,50 +1,72 @@
 import SwiftUI
 
 struct SettingsView: View {
-  @AppStorage("dotSize") var dotSize: Double = 12
+  @ObservedObject var stateManager: StateManager
+  
+  @AppStorage("overlaySize") var size: Double = 64
   
   // saving rgb as three digits because cant save NSColor or Color directly
-  @AppStorage("dotColorRed") var red: Double = 1
-  @AppStorage("dotColorGreen") var green: Double = 0
-  @AppStorage("dotColorBlue") var blue: Double = 0
+  @AppStorage("offsetX") var offsetX: Double = 16
+  @AppStorage("offsetY") var offsetY: Double = 8
   
   
   var body: some View {
-    Form {
-      Section("Appearance") {
-        HStack {
-          Text("dot size")
-          Slider(value: $dotSize, in: 6...30, step: 1)
-          Text("\(Int(dotSize)) px")
-            .monospacedDigit()
-            .frame(width: 40)
-        }
+    VStack(alignment: .leading, spacing: 0) {
+      HStack {
+        Text("🐾 GIFBuddy")
+          .font(.title2.bold())
         
-        HStack {
-          Text("Color")
-          Spacer()
-          Circle()
-            .fill(Color(red: red, green: green, blue: blue))
-            .frame(width: 20, height: 20)
-        }
-        
-        HStack {
-          Text("Red")
-          Slider(value: $red, in: 0...1)
-        }
-        
-        HStack {
-          Text("Green")
-          Slider(value: $green, in: 0...1)
-        }
-        
-        HStack {
-          Text("blue")
-          Slider(value: $blue, in: 0...1)
+        Spacer()
+      }
+      .padding([.horizontal, .top], 20)
+      .padding(.bottom, 12)
+      
+      Divider()
+      
+      VStack(spacing: 0) {
+        ForEach(BuddyState.allCases, id: \.self) { state in
+          StateRow(state: state, stateManager: stateManager)
+          
+          if state != BuddyState.allCases.last {
+            Divider()
+              .padding(.leading, 20)
+          }
         }
       }
+      
+      Divider()
+      
+      VStack(alignment: .leading, spacing: 12) {
+          Text("Position and size")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+
+          HStack {
+              Text("Size")
+              Slider(value: $size, in: 32...128, step: 8)
+              Text("\(Int(size))px")
+                  .monospacedDigit()
+                  .frame(width: 45)
+          }
+
+          HStack {
+              Text("Offset →")
+              Slider(value: $offsetX, in: -20...80, step: 4)
+              Text("\(Int(offsetX))px")
+                  .monospacedDigit()
+                  .frame(width: 45)
+          }
+
+          HStack {
+              Text("Offset ↑")
+              Slider(value: $offsetY, in: -20...80, step: 4)
+              Text("\(Int(offsetY))px")
+                  .monospacedDigit()
+                  .frame(width: 45)
+          }
+      }
+      .padding(20)
     }
-    .padding()
-    .frame(width: 360, height: 360)
+    .frame(width: 420)
   }
 }

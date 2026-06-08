@@ -6,11 +6,21 @@ final class GIFPlayerView: NSView {
   private var delays: [TimeInterval] = []
   private var currentFrame = 0
   private var timer: Timer?
+  private var currentURL: URL?
   
   // loading gif from file
   func load(url: URL) {
+    guard url != currentURL else { return }
+    currentURL = url
+    stop()
+    
     guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return }
-    loadFrames(from: source)
+    let count = CGImageSourceGetCount(source)
+    for i in 0..<count {
+      guard let image = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
+      frames.append(image)
+      delays.append(frameDelay(source: source, index: i))
+    }
     play()
   }
   
@@ -49,11 +59,11 @@ final class GIFPlayerView: NSView {
   private func frameDelay(source: CGImageSource, index: Int) -> TimeInterval {
     guard let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [String: Any], let gifProps = properties[kCGImagePropertyGIFDictionary as String] as? [String: Any] else { return 0.1 }
     
-    if let delay = gifProps[kCGImagePropertyGIFUnclampedDelayTime as String] as? TimeInterval, delay > 0 {
+    if let delay = gifProps[kCGImagePropertyGIFUnclampedDelayTime as String] as? TimeInterval, delay > 0.02 {
       return delay
     }
     
-    if let delay = gifProps[kCGImagePropertyGIFDelayTime as String] as? TimeInterval, delay > 0 {
+    if let delay = gifProps[kCGImagePropertyGIFDelayTime as String] as? TimeInterval, delay > 0.02 {
       return delay
     }
     return 0.1
@@ -61,20 +71,20 @@ final class GIFPlayerView: NSView {
   
   private func play() {
     guard !frames.isEmpty else { return }
-    timer?.invalidate()
     showFrame(0)
   }
   
   private func showFrame(_ index: Int) {
-    currentFrame = index
+    currentFrame = index % frames.count
     needsDisplay = true
     
-    let delay = delays.indices.contains(index) ? delays[index] : 0.1
+    timer?.invalidate()
+    
+    let delay = delays.indices.contains(currentFrame) ? delays[currentFrame] : 0.1
     
     timer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
       guard let self else { return }
-      let next = (self.currentFrame + 1) % self.frames.count
-      self.showFrame(next)
+      self.showFrame(self.currentFrame + 1)
     }
     
     RunLoop.main.add(timer!, forMode: .common)
@@ -89,8 +99,26 @@ final class GIFPlayerView: NSView {
     context.draw(frame, in: bounds)
   }
   
+  override init(frame frameRect: NSRect) {
+    super.init(frame: frameRect)
+    wantsLayer = true
+    layer?.backgroundColor = NSColor.clear.cgColor
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  deinit { stop() }
+  
   func stop() {
     timer?.invalidate()
+    timer = nil
+    frames = []
+    delays = []
+    currentFrame = 0
+    currentURL = nil
+    needsDisplay = true
   }
   
   func pause() {

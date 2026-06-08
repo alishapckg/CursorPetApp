@@ -3,19 +3,27 @@ import AppKit
 // main logic here
 final class OverlayController {
   private var window: OverlayWindow?
-  private var dotView: CursorOverlayView?
-  private var trackingTimer: Timer?
-  private var isEnabled = true
+  private var buddyView: BuddyView?
+  private var positionTimer: Timer?
+  private var isVisible = true
   
-  private var scrollMonitor: Any?
-  private var scrollTimer: Timer?
   
   
   // dot settings
   // to change in app delegate
-  var dotColor: NSColor = .systemRed
-  var dotSize: CGFloat = 12
-  var dotOffset: CGPoint = CGPoint(x: 16, y: -16) // offset by cursor
+//  var dotColor: NSColor = .systemRed
+//  var dotSize: CGFloat = 12
+//  var dotOffset: CGPoint = CGPoint(x: 16, y: -16) // offset by cursor
+  
+  var size: CGFloat {
+    CGFloat(UserDefaults.standard.double(forKey: "overlaySize").nonZero ?? 64) // nonZero?
+  }
+  
+  var offset: CGPoint {
+    let x = UserDefaults.standard.double(forKey: "offsetX").nonZero ?? 16 // nonZero
+    let y = UserDefaults.standard.double(forKey: "offsetY").nonZero ?? 8 // nonZero
+    return CGPoint(x: x, y: y)
+  }
   
   func start() {
     setupWindow()
@@ -24,14 +32,12 @@ final class OverlayController {
   
   private func setupWindow() {
     window = OverlayWindow()
-    dotView = CursorOverlayView(frame: NSRect(x: 0, y: 0, width: 64, height: 64))
-    dotView?.color = dotColor
-    dotView?.size = dotSize
+    buddyView = BuddyView(frame: NSRect(x: 0, y: 0, width: size, height: size))
     
     // contentView is root view of window
     // add subview - adding our dot as child view
     // NSWindow -> contentView (NSView) -> dotView(DotView)
-    window?.contentView?.addSubview(dotView!) // need to remove force unwrap
+    window?.contentView?.addSubview(buddyView!) // need to remove force unwrap
     
     // makeKeyAndOrderFront - showing window
     // nil - without animation
@@ -41,78 +47,46 @@ final class OverlayController {
   }
   // timer 60 fps for updating position
   private func startTracking() {
-    trackingTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
-      self?.updateDotPosition()
+    positionTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+      self?.updatePosition()
     }
     
     // cycle of handling events
     // macos loops this cycle and checks - is there new event of mouse, timer, system messages
     // common - mode where timer works all the time even when the user scrolls or drags windows
-    RunLoop.main.add(trackingTimer!, forMode: .common) // need to remove force unwrap
-    
-    scrollMonitor = NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel) { [weak self] _ in
-      self?.handleScroll()
-      
-    }
+    RunLoop.main.add(positionTimer!, forMode: .common) // need to remove force unwrap
   }
   
-  private func handleScroll() {
-    dotView?.content = .shape(.square)
-    
-    scrollTimer?.invalidate()
-    scrollTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false) { [weak self] _ in
-      self?.dotView?.content = .shape(.circle)
-    }
-  }
-  
-  private func updateDotPosition() {
-    guard isEnabled else { return }
+  private func updatePosition() {
+    guard isVisible else { return }
     // cursor location in screen coordinates
     let mouseLocation = NSEvent.mouseLocation
+    let s = size
     
-    // converting to window coordinates (in macos y is reversed)
-    guard let screen = NSScreen.main else { return }
-    let screenHeight = screen.frame.height
-    
-    let x = mouseLocation.x + dotOffset.x
-    // appkit calculates y from bottom, so making reversed
-    let y = screenHeight - mouseLocation.y + dotOffset.y
-    
-    dotView?.frame = NSRect(x: x, y: screenHeight - y - dotSize, width: dotSize, height: dotSize)
+    buddyView?.frame = NSRect(x: mouseLocation.x + offset.x, y: mouseLocation.y + offset.y, width: s, height: s)
+  }
+  
+  func show(content: BuddyContent) {
+    buddyView?.show(content)
+  }
+  
+  func setVisible(_ visible: Bool) {
+    self.isVisible = visible
+    buddyView?.isHidden = !visible
   }
   
   func toggle() {
-    isEnabled.toggle()
-    dotView?.isHidden = !isEnabled
+    setVisible(!isVisible)
   }
   
   func stop() {
-    trackingTimer?.invalidate()
-    trackingTimer = nil
-    scrollTimer?.invalidate()
-    
-    if let scrollMonitor {
-      NSEvent.removeMonitor(scrollMonitor)
-    }
-    
-    // orderOut removes window from screen (but not from storage)
-    // nil - without animation
+    positionTimer?.invalidate()
+    buddyView?.stopAll()
     window?.orderOut(nil)
   }
   
-  func applySettings() {
-    let size = UserDefaults.standard.double(forKey: "dotSize")
-    dotSize = size > 0 ? CGFloat(size) : 12
-    let r = UserDefaults.standard.double(forKey: "dotColorRed")
-    let g = UserDefaults.standard.double(forKey: "dotColorGreen")
-    let b = UserDefaults.standard.double(forKey: "dotColorBlue")
-    
-    if r+g+b > 0 {
-      dotColor = NSColor(red: r, green: g, blue: b, alpha: 1)
-    }
-    
-    dotView?.color = dotColor
-    dotView?.size = dotSize
-  }
-  
+}
+
+private extension Double {
+  var nonZero: Double? { self == 0 ? nil : self }
 }

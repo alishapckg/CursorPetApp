@@ -3,57 +3,43 @@ import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
   
-  // icon in menu bar
-  var statusItem: NSStatusItem?
-  
-  // overlay with our dot
-  var overlayController: OverlayController?
+  private var overlayController = OverlayController()
+  private var stateManager = StateManager()
+  private var eventMonitor = EventMonitor()
+  private var statusBar: StatusBarController?
   
   // same as viewDidLoad for UIViewController
   // system calls this methods when app is loaded
   func applicationDidFinishLaunching(_ notification: Notification) {
-    setupMenuBar()
-    overlayController = OverlayController()
-    overlayController?.start()
+    setupConnections()
+    overlayController.start()
+    eventMonitor.start()
+    
+    stateManager.setStateTemporarily(.hello, for: 2.0, thenReturn: .idle)
+    
+    statusBar = StatusBarController(stateManager: stateManager, overlayController: overlayController)
   }
   
-  private func setupMenuBar() {
-    // width of icon is flexible to size
-    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    
-    // using if let cause button can be nil if system didnt get enough space for icon
-    if let button = statusItem?.button {
-      button.title = "D"
+  private func setupConnections() {
+    stateManager.onStateChange = { [weak self] _, content in
+      self?.overlayController.show(content: content)
     }
     
-    // menu when clicking
-    let menu = NSMenu()
-    // maybe remove hot keys?
-    menu.addItem(NSMenuItem(title: "On / off", action: #selector(toggleDot), keyEquivalent: "t"))
-    menu.addItem(NSMenuItem.separator())
-    menu.addItem(NSMenuItem(title: "Settings...", action: #selector(openSettings), keyEquivalent: ","))
-    menu.addItem(NSMenuItem.separator())
-    menu.addItem(NSMenuItem(title: "Logout", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-    statusItem?.menu = menu
+    eventMonitor.onScrollStart = { [weak self] in
+      self?.stateManager.setState(.scrolling)
+    }
     
-    //didChangeOcclusionStateNotification comes when window is visible / hidden
-    NotificationCenter.default.addObserver(forName: NSWindow.didChangeOcclusionStateNotification, object: nil, queue: .main) { [weak self] _ in
-      self?.overlayController?.applySettings()
+    eventMonitor.onScrollEnd = { [weak self] in
+      self?.stateManager.setState(.idle)
+    }
+    
+    eventMonitor.onIdle = { [weak self] in
+      self?.stateManager.setState(.idle)
     }
   }
-  
-  @objc private func toggleDot() {
-    overlayController?.toggle()
-  }
-  
-  @objc private func openSettings() {
-    let settingsView = SettingsView()
-    let hostingController = NSHostingController(rootView: settingsView)
-    let window = NSWindow(contentViewController: hostingController)
-    window.title = "Cursot Dot - Settings"
-    window.styleMask = [.titled, .closable]
-    window.center()
-    window.makeKeyAndOrderFront(nil)
-    NSApp.activate(ignoringOtherApps: true)
+
+  func applicationWillTerminate(_ notification: Notification) {
+    eventMonitor.stop()
+    overlayController.stop()
   }
 }
