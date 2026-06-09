@@ -1,14 +1,14 @@
 import Foundation
 
 // modes
-// hello when opened - done need to fix timing
+// DONE hello when opened - done need to fix timing
 // not in xcode (if xcode is active and installed app) - angry
 // xcode project build success - happy
 // xcode project build fail - sad
 // xcode project building - building
-// scrolling - reading - done
+// DONE scrolling - reading - done
 // idle - when nothing happes - no scroll, no xcode building - no typing - thinking
-// main mode - just on laptop  - done
+// DONE main mode - just on laptop  - done
 enum BuddyState: String, CaseIterable {
   case idle = "idle"
   case hello = "hello"

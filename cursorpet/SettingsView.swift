@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
   @ObservedObject var stateManager: StateManager
   
-  @AppStorage("overlaySize") var size: Double = 64
+  @AppStorage("overlaySize") var size: Double = 128
   
   // saving rgb as three digits because cant save NSColor or Color directly
   @AppStorage("offsetX") var offsetX: Double = 16
@@ -13,7 +13,7 @@ struct SettingsView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       HStack {
-        Text("🐾 GIFBuddy")
+        Text("🐾 GIFBuddy Settings")
           .font(.title2.bold())
         
         Spacer()
@@ -37,33 +37,33 @@ struct SettingsView: View {
       Divider()
       
       VStack(alignment: .leading, spacing: 12) {
-          Text("Position and size")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
-
-          HStack {
-              Text("Size")
-              Slider(value: $size, in: 32...128, step: 8)
-              Text("\(Int(size))px")
-                  .monospacedDigit()
-                  .frame(width: 45)
-          }
-
-          HStack {
-              Text("Offset →")
-              Slider(value: $offsetX, in: -20...80, step: 4)
-              Text("\(Int(offsetX))px")
-                  .monospacedDigit()
-                  .frame(width: 45)
-          }
-
-          HStack {
-              Text("Offset ↑")
-              Slider(value: $offsetY, in: -20...80, step: 4)
-              Text("\(Int(offsetY))px")
-                  .monospacedDigit()
-                  .frame(width: 45)
-          }
+        Text("Position and size")
+          .font(.subheadline)
+          .foregroundColor(.secondary)
+        
+        HStack {
+          Text("Size")
+          Slider(value: $size, in: 32...128, step: 8)
+          Text("\(Int(size))px")
+            .monospacedDigit()
+            .frame(width: 45)
+        }
+        
+        HStack {
+          Text("Offset →")
+          Slider(value: $offsetX, in: -20...80, step: 4)
+          Text("\(Int(offsetX))px")
+            .monospacedDigit()
+            .frame(width: 45)
+        }
+        
+        HStack {
+          Text("Offset ↑")
+          Slider(value: $offsetY, in: -20...80, step: 4)
+          Text("\(Int(offsetY))px")
+            .monospacedDigit()
+            .frame(width: 45)
+        }
       }
       .padding(20)
     }
