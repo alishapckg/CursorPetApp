@@ -1,14 +1,14 @@
 import Foundation
 
 // modes
-// hello when opened
+// hello when opened - done need to fix timing
 // not in xcode (if xcode is active and installed app) - angry
 // xcode project build success - happy
 // xcode project build fail - sad
 // xcode project building - building
-// scrolling - reading
+// scrolling - reading - done
 // idle - when nothing happes - no scroll, no xcode building - no typing - thinking
-// main mode - just on laptop 
+// main mode - just on laptop  - done
 enum BuddyState: String, CaseIterable {
   case idle = "idle"
   case hello = "hello"
@@ -42,11 +42,11 @@ enum BuddyState: String, CaseIterable {
   var defaultGifName: String {
     switch self {
     case .idle:
-      return "buddy_idle"
+      return "buddy_loading"
     case .hello:
       return "buddy_hello"
     case .scrolling:
-      return "trial"
+      return "buddy_scrolling"
     }
   }
   

@@ -15,7 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     overlayController.start()
     eventMonitor.start()
     
-    stateManager.setStateTemporarily(.hello, for: 2.0, thenReturn: .idle)
+    stateManager.setStateTemporarily(.hello, for: 4.0, thenReturn: .idle)
     
     statusBar = StatusBarController(stateManager: stateManager, overlayController: overlayController)
   }

@@ -4,22 +4,27 @@ import Combine
 final class StateManager: ObservableObject {
   @Published private(set) var currentState: BuddyState = .idle
   
+  private var isPlayingOnce = false
+  
   // callback for overlay controller - what to show
   var onStateChange: ((BuddyState, BuddyContent) -> Void)?
   
   // to set state forever
   func setState(_ state: BuddyState) {
+    guard !isPlayingOnce else { return }
     guard state != currentState else { return }
     currentState = state
     notifyChange()
   }
   
   func setStateTemporarily(_ state: BuddyState, for duration: TimeInterval, thenReturn returnState: BuddyState = .idle) {
+    isPlayingOnce = true
     currentState = state
     notifyChange()
     
     DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
       guard let self else { return }
+      self.isPlayingOnce = false
       if self.currentState == state {
         self.setState(returnState)
       }
