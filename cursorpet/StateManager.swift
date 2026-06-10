@@ -28,46 +28,65 @@ final class StateManager: ObservableObject {
       if self.currentState == state {
         self.setState(returnState)
       }
-      
     }
   }
   
   func content(for state: BuddyState) -> BuddyContent {
-    // if there is custom file in UserDefaults
-    if let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) {
-      let url = URL(fileURLWithPath: path)
-      
-      // checking if the file is existing on disk
-      // user could delete or move it
-      guard FileManager.default.fileExists(atPath: path) else {
-        // if file is deleted - we remove it from settings and use default file
-        UserDefaults.standard.removeObject(forKey: state.userDefaultsForCustomFileKey)
-        return .bundleGIF(name: state.defaultGifName)
-      }
-      
-      switch url.pathExtension.lowercased() {
-      case "lottie", "json":
-        return .lottie(url: url)
-        
-      default:
-        return .gif(url: url)
-      }
+    guard let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) else {
+      return .bundleGIF(name: state.defaultGifName)
     }
     
-    // if no custom file - using default
-    return .bundleGIF(name: state.defaultGifName)
+    let url = URL(fileURLWithPath: path)
+    
+    guard FileManager.default.fileExists(atPath: path) else {
+      UserDefaults.standard.removeObject(forKey: state.userDefaultsForCustomFileKey)
+      return .bundleGIF(name: state.defaultGifName)
+    }
+    
+    switch url.pathExtension.lowercased() {
+    case "lottie", "json":
+      return .lottie(url: url)
+    default:
+      return .gif(url: url)
+    }
   }
   
   func setCustomFile(url: URL, for state: BuddyState) {
-    UserDefaults.standard.set(url.path, forKey: state.userDefaultsForCustomFileKey)
+    guard let destinationDir = getApplicationSupportDirectory() else {
+      print("Fsailed to get access to Application Support folder")
+      return
+    }
     
-    if state == currentState {
-      notifyChange()
+    let fileExtension = url.pathExtension.isEmpty ? "gif" : url.pathExtension
+    let destinationURL = destinationDir.appendingPathComponent("\(state.rawValue).\(fileExtension)")
+    
+    do {
+      if FileManager.default.fileExists(atPath: destinationURL.path) {
+        try FileManager.default.removeItem(at: destinationURL)
+      }
+      
+      try FileManager.default.copyItem(at: url, to: destinationURL)
+      
+      print("File copied to \(destinationURL.path)")
+      
+      UserDefaults.standard.set(destinationURL.path, forKey: state.userDefaultsForCustomFileKey)
+      
+      if state == currentState {
+        notifyChange()
+      }
+      
+    } catch {
+      print("Error copying file \(error.localizedDescription)")
     }
   }
   
   func resetToDefault(for state: BuddyState) {
     UserDefaults.standard.removeObject(forKey: state.userDefaultsForCustomFileKey)
+    
+    if let dir = getApplicationSupportDirectory() {
+      let fileURL = dir.appendingPathComponent(state.rawValue)
+    }
+    
     if state == currentState {
       notifyChange()
     }
@@ -77,12 +96,24 @@ final class StateManager: ObservableObject {
     guard let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) else {
       return false
     }
-    
     return FileManager.default.fileExists(atPath: path)
   }
   
   private func notifyChange() {
     let content = content(for: currentState)
     onStateChange?(currentState, content)
+  }
+  
+  private func getApplicationSupportDirectory() -> URL? {
+    let fileManager = FileManager.default
+    if let url = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+      let appDirectory = url.appendingPathComponent("GIFBuddy")
+      
+      if !fileManager.fileExists(atPath: appDirectory.path) {
+        try? fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true)
+      }
+      return appDirectory
+    }
+    return nil
   }
 }
