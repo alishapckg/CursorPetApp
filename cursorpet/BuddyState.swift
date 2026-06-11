@@ -38,7 +38,7 @@ enum BuddyState: String, CaseIterable {
     case .idle:
       return "Not active more than 5 sec"
     case .hello:
-      return "Activating the app, 2 seconds"
+      return "Activating the app, 5 seconds"
     case .scrolling:
       return "When user scrolls"
     }

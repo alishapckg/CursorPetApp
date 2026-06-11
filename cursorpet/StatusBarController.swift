@@ -22,12 +22,10 @@ final class StatusBarController {
   private func makeMenu() -> NSMenu {
     let menu = NSMenu()
     menu.addItem(withTitle: "Show / Hide", action: #selector(toggleVisibility), keyEquivalent: "h").target = self
-    
     menu.addItem(.separator())
-    
     menu.addItem(withTitle: "Settings...", action: #selector(openSettings), keyEquivalent: ",").target = self
     menu.addItem(.separator())
-    menu.addItem(withTitle: "Logout", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
     return menu
   }
   
@@ -36,15 +34,39 @@ final class StatusBarController {
   }
   
   @objc private func openSettings() {
+    if let existing = settingsWindow, existing.isVisible {
+      existing.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
+      return
+    }
+    
     guard let stateManager else { return }
     
     let view = SettingsView(stateManager: stateManager)
     let controller = NSHostingController(rootView: view)
     let window = NSWindow(contentViewController: controller)
     
-    window.title = "GIFBuddy"
-    window.styleMask = [.titled, .closable]
-    window.center()
+    window.title = ""
+    window.styleMask = [.titled, .closable, .fullSizeContentView]
+    window.titleVisibility = .hidden
+    window.titlebarAppearsTransparent = true
+    window.appearance = NSAppearance(named: .darkAqua)
+    window.isMovableByWindowBackground = true
+    
+    // position below the status bar icon
+    // need to layout first so frame.size is known
+    window.layoutIfNeeded()
+    
+    if let button = statusItem?.button,
+       let buttonWindow = button.window {
+      let buttonRect = buttonWindow.convertToScreen(button.frame)
+      let x = buttonRect.midX - window.frame.width / 2
+      let y = buttonRect.minY - window.frame.height - 4
+      window.setFrameOrigin(NSPoint(x: x, y: y))
+    } else {
+      window.center()
+    }
+    
     window.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
     settingsWindow = window

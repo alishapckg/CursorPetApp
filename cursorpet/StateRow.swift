@@ -3,113 +3,118 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct StateRow: View {
-  
   let state: BuddyState
   @ObservedObject var stateManager: StateManager
   
   @State private var isDropTargeted = false
-  // first frame of the current gif / image for preview
   @State private var previewImage: NSImage? = nil
+  @State private var isHovered = false
   
-  var hasCustom: Bool {
-    stateManager.hasCustomFile(for: state)
-  }
+  private let cardBg      = Color.white.opacity(0.05)
+  private let cardActive  = Color(hex: "#00FF88").opacity(0.12)
+  private let cardBorder  = Color.white.opacity(0.08)
+  private let accentBorder = Color(hex: "#00FF88").opacity(0.28)
+  private let accent      = Color(hex: "#00FF88")
+  private let previewBg   = Color(hex: "#1E1A28")
+  private let textPri     = Color(hex: "#F5F3FF")
+  private let textSec     = Color.white.opacity(0.55)
+  private let textDim     = Color.white.opacity(0.20)
   
-  // path to whichever file is active (custom or bundle)
+  private var isActive: Bool { stateManager.currentState == state }
+  var hasCustom: Bool { stateManager.hasCustomFile(for: state) }
+  
   private var activeFilePath: String? {
     if let custom = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey),
-       FileManager.default.fileExists(atPath: custom) {
-      return custom
-    }
-    // fall back to bundle gif
+       FileManager.default.fileExists(atPath: custom) { return custom }
     return Bundle.main.url(forResource: state.defaultGifName, withExtension: "gif")?.path
   }
   
   var body: some View {
     HStack(spacing: 12) {
       
-      // Preview thumbnail
       ZStack {
         RoundedRectangle(cornerRadius: 8)
-          .fill(isDropTargeted
-                ? Color.accentColor.opacity(0.35)
-                : Color.accentColor.opacity(0.12))
+          .fill(isDropTargeted ? accent.opacity(0.20) : previewBg)
           .overlay(
             RoundedRectangle(cornerRadius: 8)
-              .strokeBorder(isDropTargeted ? Color.accentColor : Color.clear, lineWidth: 2)
+              .strokeBorder(
+                isDropTargeted ? accent : cardBorder,
+                style: StrokeStyle(lineWidth: isDropTargeted ? 1.5 : 0.5,
+                                   dash: isDropTargeted ? [4, 3] : [])
+              )
           )
         
         if let img = previewImage {
           Image(nsImage: img)
             .resizable()
             .scaledToFill()
-            .frame(width: 48, height: 48)
+            .frame(width: 52, height: 52)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .opacity(isDropTargeted ? 0.4 : 1)
         } else {
           Text(stateEmoji)
-            .font(.title2)
+            .font(.system(size: 26))
+            .opacity(isDropTargeted ? 0.3 : 1)
         }
         
-        // small drag hint icon in corner
         if isDropTargeted {
           Image(systemName: "arrow.down.circle.fill")
-            .foregroundColor(.accentColor)
             .font(.system(size: 20, weight: .semibold))
+            .foregroundColor(accent)
         }
       }
-      .frame(width: 48, height: 48)
-      // Drag & Drop
+      .frame(width: 52, height: 52)
       .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
         handleDrop(providers: providers)
       }
       
-      // Name / description / filename
       VStack(alignment: .leading, spacing: 2) {
         Text(state.displayName)
-          .font(.body.weight(.medium))
-        
+          .font(.system(size: 14, weight: .medium))
+          .foregroundColor(textPri)
         Text(state.description)
-          .font(.caption)
-          .foregroundColor(.secondary)
-        
+          .font(.system(size: 12))
+          .foregroundColor(textSec)
         if hasCustom,
            let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) {
           Text(URL(fileURLWithPath: path).lastPathComponent)
-            .font(.caption)
-            .foregroundColor(.accentColor)
+            .font(.system(size: 11))
+            .foregroundColor(accent)
+        } else {
+          Text("\(state.defaultGifName).gif  ·  default")
+            .font(.system(size: 11))
+            .foregroundColor(textDim)
         }
       }
       
       Spacer()
       
-      // Buttons
-      HStack(spacing: 8) {
+      HStack(spacing: 6) {
         if hasCustom {
-          Button {
+          DarkIconButton(systemName: "arrow.counterclockwise", help: "Back to default") {
             stateManager.resetToDefault(for: state)
             loadPreview()
-          } label: {
-            Image(systemName: "arrow.counterclockwise")
           }
-          .buttonStyle(.borderless)
-          .foregroundColor(.secondary)
-          .help("Back to default")
         }
-        
-        Button("Change...") {
-          pickFile()
-        }
-        .buttonStyle(.bordered)
+        DarkTextButton("Change…") { pickFile() }
       }
     }
-    .padding(.horizontal, 20)
+    .padding(.horizontal, 14)
     .padding(.vertical, 12)
+    .background(
+      RoundedRectangle(cornerRadius: 10)
+        .fill(isActive ? cardActive : (isHovered ? Color.white.opacity(0.07) : cardBg))
+        .overlay(
+          RoundedRectangle(cornerRadius: 10)
+            .strokeBorder(isActive ? accentBorder : cardBorder, lineWidth: 0.5)
+        )
+    )
+    .onHover { isHovered = $0 }
+    .animation(.easeOut(duration: 0.12), value: isHovered)
     .onAppear { loadPreview() }
-    // refresh preview when stateManager publishes a change
     .onChange(of: stateManager.currentState) { _ in loadPreview() }
   }
   
-  // Emoji fallback
   private var stateEmoji: String {
     switch state {
     case .idle:      return "💤"
@@ -118,11 +123,9 @@ struct StateRow: View {
     }
   }
   
-  // Load first GIF frame off main thread
   private func loadPreview() {
     guard let path = activeFilePath else { previewImage = nil; return }
     let url = URL(fileURLWithPath: path)
-    
     DispatchQueue.global(qos: .userInitiated).async {
       let img = firstFrame(of: url)
       DispatchQueue.main.async { previewImage = img }
@@ -131,32 +134,25 @@ struct StateRow: View {
   
   private func firstFrame(of url: URL) -> NSImage? {
     let ext = url.pathExtension.lowercased()
-    // for lottie / json just show generic icon – no easy first-frame without rendering
-    guard ext == "gif" || ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "webp" else {
+    guard ["gif","png","jpg","jpeg","webp"].contains(ext) else {
       return NSImage(systemSymbolName: "sparkles", accessibilityDescription: nil)
     }
-    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-          let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
-    return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+    guard let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+    let count = CGImageSourceGetCount(src)
+    let index = count > 1 ? count / 2 : 0
+    guard let cg = CGImageSourceCreateImageAtIndex(src, index, nil) else { return nil }
+    return NSImage(cgImage: cg, size: NSSize(width: cg.width, height: cg.height))
   }
   
-  // Open panel (async – no main-thread block)
   private func pickFile() {
     let panel = NSOpenPanel()
-    panel.title          = "Choose animation for «\(state.displayName)»"
-    panel.message        = "Supported: GIF, Lottie (.lottie, .json)"
+    panel.title = "Choose animation for «\(state.displayName)»"
+    panel.message = "Supported: GIF, Lottie (.lottie, .json)"
     panel.allowsMultipleSelection = false
-    panel.canChooseDirectories    = false
-    
+    panel.canChooseDirectories = false
     if #available(macOS 12.0, *) {
-      panel.allowedContentTypes = [
-        .gif,
-        UTType(filenameExtension: "lottie")!,
-        .json
-      ]
+      panel.allowedContentTypes = [.gif, UTType(filenameExtension: "lottie")!, .json]
     }
-    
-    // begin(completionHandler:) is non-blocking – UI stays responsive
     panel.begin { response in
       guard response == .OK, let url = panel.url else { return }
       stateManager.setCustomFile(url: url, for: state)
@@ -164,23 +160,71 @@ struct StateRow: View {
     }
   }
   
-  // Drag & drop handler
   private func handleDrop(providers: [NSItemProvider]) -> Bool {
     guard let provider = providers.first else { return false }
-    
     provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
       guard let data = item as? Data,
-            let url  = URL(dataRepresentation: data, relativeTo: nil) else { return }
-      
-      let ext = url.pathExtension.lowercased()
-      let allowed = ["gif", "lottie", "json"]
-      guard allowed.contains(ext) else { return }
-      
+            let url  = URL(dataRepresentation: data, relativeTo: nil),
+            ["gif","lottie","json"].contains(url.pathExtension.lowercased()) else { return }
       DispatchQueue.main.async {
         stateManager.setCustomFile(url: url, for: state)
         loadPreview()
       }
     }
     return true
+  }
+}
+
+private struct DarkIconButton: View {
+  let systemName: String
+  let help: String
+  let action: () -> Void
+  @State private var hovered = false
+  
+  var body: some View {
+    Button(action: action) {
+      Image(systemName: systemName)
+        .font(.system(size: 12))
+        .foregroundColor(hovered ? Color.white.opacity(0.85) : Color.white.opacity(0.45))
+        .frame(width: 28, height: 26)
+        .background(
+          RoundedRectangle(cornerRadius: 6)
+            .fill(Color.white.opacity(hovered ? 0.10 : 0.06))
+            .overlay(RoundedRectangle(cornerRadius: 6)
+              .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.5))
+        )
+    }
+    .buttonStyle(.plain)
+    .onHover { hovered = $0 }
+    .help(help)
+  }
+}
+
+private struct DarkTextButton: View {
+  let title: String
+  let action: () -> Void
+  @State private var hovered = false
+  
+  init(_ title: String, action: @escaping () -> Void) {
+    self.title = title
+    self.action = action
+  }
+  
+  var body: some View {
+    Button(action: action) {
+      Text(title)
+        .font(.system(size: 12))
+        .foregroundColor(hovered ? Color(hex: "#F5F3FF") : Color.white.opacity(0.75))
+        .padding(.horizontal, 10)
+        .frame(height: 26)
+        .background(
+          RoundedRectangle(cornerRadius: 6)
+            .fill(Color.white.opacity(hovered ? 0.10 : 0.06))
+            .overlay(RoundedRectangle(cornerRadius: 6)
+              .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.5))
+        )
+    }
+    .buttonStyle(.plain)
+    .onHover { hovered = $0 }
   }
 }
