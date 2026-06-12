@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct StateRow: View {
   let state: BuddyState
   @ObservedObject var stateManager: StateManager
+  @ObservedObject var accessibilityManager: AccessibilityManager
   
   @State private var isDropTargeted = false
   @State private var previewImage: NSImage? = nil
@@ -25,7 +26,7 @@ struct StateRow: View {
   
   /// true если это screenshot и accessibility выключен
   private var isScreenshotDisabled: Bool {
-    state == .screenshot && !ScreenshotKeyMonitor.isAccessibilityEnabled
+    state == .screenshot && !accessibilityManager.isEnabled
   }
   
   private var activeFilePath: String? {

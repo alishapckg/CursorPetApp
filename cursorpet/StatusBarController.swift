@@ -6,10 +6,12 @@ final class StatusBarController {
   private weak var stateManager: StateManager?
   private weak var overlayController: OverlayController?
   private var settingsWindow: NSWindow?
+  private var accessibilityManager: AccessibilityManager?
   
-  init(stateManager: StateManager, overlayController: OverlayController) {
+  init(stateManager: StateManager, overlayController: OverlayController, accessibilityManager: AccessibilityManager) {
     self.stateManager = stateManager
     self.overlayController = overlayController
+    self.accessibilityManager = accessibilityManager
     setup()
   }
   
@@ -40,9 +42,9 @@ final class StatusBarController {
       return
     }
     
-    guard let stateManager else { return }
+    guard let stateManager, let accessibilityManager else { return }
     
-    let view = SettingsView(stateManager: stateManager)
+    let view = SettingsView(stateManager: stateManager, accessibilityManager: accessibilityManager)
     let controller = NSHostingController(rootView: view)
     let window = NSWindow(contentViewController: controller)
     

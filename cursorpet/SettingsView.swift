@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 struct SettingsView: View {
   @ObservedObject var stateManager: StateManager
+  @ObservedObject var accessibilityManager: AccessibilityManager
   
   @AppStorage("overlaySize") var size: Double = 128
   @AppStorage("offsetX")     var offsetX: Double = 16
@@ -24,14 +25,14 @@ struct SettingsView: View {
       VStack(spacing: 4) {
         // ← Используем allCases, чтобы screenshot всегда был виден
         ForEach(BuddyState.allCases, id: \.self) { state in
-          StateRow(state: state, stateManager: stateManager)
+          StateRow(state: state, stateManager: stateManager, accessibilityManager: accessibilityManager)
         }
       }
       .padding(.horizontal, 12)
       .padding(.bottom, 4)
       
       // Предупреждение о Accessibility — показываем если screenshot заблокирован
-      if !ScreenshotKeyMonitor.isAccessibilityEnabled {
+      if !accessibilityManager.isEnabled {
         accessibilityWarning
       }
       

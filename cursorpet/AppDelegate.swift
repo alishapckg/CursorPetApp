@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Combine
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
   
@@ -8,6 +9,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var eventMonitor = EventMonitor()
   private var statusBar: StatusBarController?
   private var screenshotKeyMonitor = ScreenshotKeyMonitor()
+  private var accessibilityManager = AccessibilityManager()
+  private var cancellables = Set<AnyCancellable>() // ← для Combine
   
   // same as viewDidLoad for UIViewController
   // system calls this methods when app is loaded
@@ -15,14 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     setupConnections()
     overlayController.start()
     eventMonitor.start()
+    accessibilityManager.startMonitoring()
     
-    if ScreenshotKeyMonitor.isAccessibilityEnabled {
+    if accessibilityManager.isEnabled {
       screenshotKeyMonitor.start()
     }
     
     stateManager.setStateTemporarily(.hello, for: 4.0, thenReturn: .idle)
     
-    statusBar = StatusBarController(stateManager: stateManager, overlayController: overlayController)
+    statusBar = StatusBarController(stateManager: stateManager, overlayController: overlayController, accessibilityManager: accessibilityManager)
   }
   
   private func setupConnections() {
@@ -42,9 +46,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       self?.stateManager.setState(.idle)
     }
     
+    // Когда accessibility включается — запускаем монитор
+    accessibilityManager.$isEnabled
+      .dropFirst() // пропускаем начальное значение
+      .sink { [weak self] isEnabled in
+        if isEnabled {
+          print("🔓 Accessibility granted! Starting screenshot monitor...")
+          self?.screenshotKeyMonitor.start()
+        } else {
+          print("🔒 Accessibility revoked. Stopping screenshot monitor...")
+          self?.screenshotKeyMonitor.stop()
+        }
+      }
+      .store(in: &cancellables)
+    
     screenshotKeyMonitor.onScreenshot = { [weak self] in
       self?.handleScreenshot()
-      
     }
   }
   
@@ -58,6 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   func applicationWillTerminate(_ notification: Notification) {
     eventMonitor.stop()
     screenshotKeyMonitor.stop()
+    accessibilityManager.stop()
     overlayController.stop()
   }
 }
