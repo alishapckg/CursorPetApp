@@ -22,6 +22,8 @@ enum BuddyState: String, CaseIterable {
   case scrolling = "scrolling"
   case screenshot = "screenshot"
   
+
+  
   // in settings
   var displayName: String {
     switch self {

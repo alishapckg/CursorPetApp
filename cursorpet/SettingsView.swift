@@ -1,4 +1,6 @@
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
   @ObservedObject var stateManager: StateManager
@@ -20,12 +22,18 @@ struct SettingsView: View {
       SectionLabel("Animations", color: label)
       
       VStack(spacing: 4) {
+        // ← Используем allCases, чтобы screenshot всегда был виден
         ForEach(BuddyState.allCases, id: \.self) { state in
           StateRow(state: state, stateManager: stateManager)
         }
       }
       .padding(.horizontal, 12)
       .padding(.bottom, 4)
+      
+      // Предупреждение о Accessibility — показываем если screenshot заблокирован
+      if !ScreenshotKeyMonitor.isAccessibilityEnabled {
+        accessibilityWarning
+      }
       
       Divider()
         .overlay(border)
@@ -65,9 +73,73 @@ struct SettingsView: View {
     .background(bg)
     .frame(width: 440)
   }
+  
+  // MARK: - Accessibility Warning
+  
+  private var accessibilityWarning: some View {
+    HStack(spacing: 8) {
+      Image(systemName: "lock.shield.fill")
+        .font(.system(size: 12))
+        .foregroundColor(Color(hex: "#FFB800"))
+      
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Screenshot reaction disabled")
+          .font(.system(size: 12, weight: .medium))
+          .foregroundColor(Color.white.opacity(0.75))
+        Text("Enable Accessibility to unlock")
+          .font(.system(size: 11))
+          .foregroundColor(Color.white.opacity(0.45))
+      }
+      
+      Spacer()
+      
+      Button(action: openAccessibilitySettings) {
+        HStack(spacing: 4) {
+          Text("Open Settings")
+            .font(.system(size: 11, weight: .medium))
+          Image(systemName: "arrow.up.right.square")
+            .font(.system(size: 10))
+        }
+        .foregroundColor(accent)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(
+          RoundedRectangle(cornerRadius: 6)
+            .fill(accent.opacity(0.12))
+            .overlay(
+              RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(accent.opacity(0.30), lineWidth: 0.5)
+            )
+        )
+      }
+      .buttonStyle(.plain)
+      .cursor(.pointingHand)
+    }
+    .padding(.horizontal, 14)
+    .padding(.vertical, 10)
+    .background(
+      RoundedRectangle(cornerRadius: 8)
+        .fill(Color(hex: "#FFB800").opacity(0.06))
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .strokeBorder(Color(hex: "#FFB800").opacity(0.20), lineWidth: 0.5)
+        )
+    )
+    .padding(.horizontal, 12)
+    .padding(.top, 4)
+    .padding(.bottom, 2)
+  }
+  
+  private func openAccessibilitySettings() {
+    guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
+      return
+    }
+    NSWorkspace.shared.open(url)
+  }
 }
 
-// Section label
+// MARK: - Section Label
+
 private struct SectionLabel: View {
   let text: String
   let color: Color
@@ -87,7 +159,8 @@ private struct SectionLabel: View {
   }
 }
 
-// Slim dark slider
+// MARK: - Dark Slider
+
 private struct DarkSlider: View {
   let label: String
   @Binding var value: Double
@@ -112,7 +185,27 @@ private struct DarkSlider: View {
   }
 }
 
-// Hex color helper
+// MARK: - Cursor Modifier
+
+private struct CursorModifier: ViewModifier {
+  let cursor: NSCursor
+  
+  func body(content: Content) -> some View {
+    content
+      .onHover { isHovered in
+        isHovered ? cursor.push() : cursor.pop()
+      }
+  }
+}
+
+extension View {
+  func cursor(_ cursor: NSCursor) -> some View {
+    modifier(CursorModifier(cursor: cursor))
+  }
+}
+
+// MARK: - Hex Color Helper
+
 extension Color {
   init(hex: String) {
     let h = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

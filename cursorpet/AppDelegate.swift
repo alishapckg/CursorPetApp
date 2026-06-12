@@ -15,7 +15,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     setupConnections()
     overlayController.start()
     eventMonitor.start()
-    screenshotKeyMonitor.start()
+    
+    if ScreenshotKeyMonitor.isAccessibilityEnabled {
+      screenshotKeyMonitor.start()
+    }
     
     stateManager.setStateTemporarily(.hello, for: 4.0, thenReturn: .idle)
     

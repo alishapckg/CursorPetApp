@@ -1,4 +1,5 @@
 import CoreGraphics
+import ApplicationServices
 
 final class ScreenshotKeyMonitor {
   var onScreenshot: (() -> Void)?
@@ -6,7 +7,17 @@ final class ScreenshotKeyMonitor {
   private var eventTap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
   
+  static var isAccessibilityEnabled: Bool {
+    let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: false]
+    return AXIsProcessTrustedWithOptions(options as CFDictionary)
+  }
+  
   func start() {
+    guard Self.isAccessibilityEnabled else {
+      print("Accessibility not granted. Screenshot shortcut monitoring desabled.")
+      return
+    }
+    
     let callback: CGEventTapCallBack = { proxy, type, event, refcon -> Unmanaged<CGEvent>? in
       guard let refcon = refcon else { return Unmanaged.passRetained(event) }
       let monitor = Unmanaged<ScreenshotKeyMonitor>.fromOpaque(refcon).takeUnretainedValue()

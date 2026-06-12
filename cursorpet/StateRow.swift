@@ -23,6 +23,11 @@ struct StateRow: View {
   private var isActive: Bool { stateManager.currentState == state }
   var hasCustom: Bool { stateManager.hasCustomFile(for: state) }
   
+  /// true если это screenshot и accessibility выключен
+  private var isScreenshotDisabled: Bool {
+    state == .screenshot && !ScreenshotKeyMonitor.isAccessibilityEnabled
+  }
+  
   private var activeFilePath: String? {
     if let custom = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey),
        FileManager.default.fileExists(atPath: custom) { return custom }
@@ -32,6 +37,7 @@ struct StateRow: View {
   var body: some View {
     HStack(spacing: 12) {
       
+      // Preview
       ZStack {
         RoundedRectangle(cornerRadius: 8)
           .fill(isDropTargeted ? accent.opacity(0.20) : previewBg)
@@ -51,10 +57,26 @@ struct StateRow: View {
             .frame(width: 52, height: 52)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .opacity(isDropTargeted ? 0.4 : 1)
+            .blur(radius: isScreenshotDisabled ? 6 : 0) // ← блюр если недоступно
+            .overlay(
+              isScreenshotDisabled ?
+                Image(systemName: "lock.fill")
+                  .font(.system(size: 16, weight: .semibold))
+                  .foregroundColor(Color.white.opacity(0.6))
+                : nil
+            )
         } else {
           Text(stateEmoji)
             .font(.system(size: 26))
             .opacity(isDropTargeted ? 0.3 : 1)
+            .overlay(
+              isScreenshotDisabled ?
+                Image(systemName: "lock.fill")
+                  .font(.system(size: 14, weight: .semibold))
+                  .foregroundColor(Color.white.opacity(0.6))
+                  .offset(y: -2)
+                : nil
+            )
         }
         
         if isDropTargeted {
@@ -65,16 +87,28 @@ struct StateRow: View {
       }
       .frame(width: 52, height: 52)
       .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
-        handleDrop(providers: providers)
+        guard !isScreenshotDisabled else { return false } // ← блокируем дроп
+        return handleDrop(providers: providers)
       }
       
+      // Text
       VStack(alignment: .leading, spacing: 2) {
-        Text(state.displayName)
-          .font(.system(size: 14, weight: .medium))
-          .foregroundColor(textPri)
+        HStack(spacing: 4) {
+          Text(state.displayName)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(isScreenshotDisabled ? textPri.opacity(0.4) : textPri)
+          
+          if isScreenshotDisabled {
+            Image(systemName: "lock.fill")
+              .font(.system(size: 10))
+              .foregroundColor(Color(hex: "#FFB800"))
+          }
+        }
+        
         Text(state.description)
           .font(.system(size: 12))
-          .foregroundColor(textSec)
+          .foregroundColor(isScreenshotDisabled ? textSec.opacity(0.4) : textSec)
+        
         if hasCustom,
            let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) {
           Text(URL(fileURLWithPath: path).lastPathComponent)
@@ -83,20 +117,23 @@ struct StateRow: View {
         } else {
           Text("\(state.defaultGifName).gif  ·  default")
             .font(.system(size: 11))
-            .foregroundColor(textDim)
+            .foregroundColor(isScreenshotDisabled ? textDim.opacity(0.5) : textDim)
         }
       }
       
       Spacer()
       
+      // Buttons
       HStack(spacing: 6) {
-        if hasCustom {
+        if hasCustom && !isScreenshotDisabled {
           DarkIconButton(systemName: "arrow.counterclockwise", help: "Back to default") {
             stateManager.resetToDefault(for: state)
             loadPreview()
           }
         }
-        DarkTextButton("Change…") { pickFile() }
+        if !isScreenshotDisabled {
+          DarkTextButton("Change…") { pickFile() }
+        }
       }
     }
     .padding(.horizontal, 14)
@@ -146,6 +183,8 @@ struct StateRow: View {
   }
   
   private func pickFile() {
+    guard !isScreenshotDisabled else { return }
+    
     let panel = NSOpenPanel()
     panel.title = "Choose animation for «\(state.displayName)»"
     panel.message = "Supported: GIF, Lottie (.lottie, .json)"
@@ -162,6 +201,8 @@ struct StateRow: View {
   }
   
   private func handleDrop(providers: [NSItemProvider]) -> Bool {
+    guard !isScreenshotDisabled else { return false }
+    
     guard let provider = providers.first else { return false }
     provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
       guard let data = item as? Data,
@@ -175,6 +216,8 @@ struct StateRow: View {
     return true
   }
 }
+
+// MARK: - Dark Icon Button
 
 private struct DarkIconButton: View {
   let systemName: String
@@ -200,6 +243,8 @@ private struct DarkIconButton: View {
     .help(help)
   }
 }
+
+// MARK: - Dark Text Button
 
 private struct DarkTextButton: View {
   let title: String
