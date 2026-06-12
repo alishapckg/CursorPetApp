@@ -10,15 +10,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusBar: StatusBarController?
   private var screenshotKeyMonitor = ScreenshotKeyMonitor()
   private var accessibilityManager = AccessibilityManager()
-  private var cancellables = Set<AnyCancellable>() // ← для Combine
+  private var xcodeMonitor = XcodeMonitor()
+  private var cancellables = Set<AnyCancellable>()
+  private var xcodeTimer: Timer? // ← таймер для сброса Xcode-состояний
   
-  // same as viewDidLoad for UIViewController
-  // system calls this methods when app is loaded
   func applicationDidFinishLaunching(_ notification: Notification) {
     setupConnections()
     overlayController.start()
     eventMonitor.start()
     accessibilityManager.startMonitoring()
+    xcodeMonitor.start()
     
     if accessibilityManager.isEnabled {
       screenshotKeyMonitor.start()
@@ -26,7 +27,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     stateManager.setStateTemporarily(.hello, for: 4.0, thenReturn: .idle)
     
-    statusBar = StatusBarController(stateManager: stateManager, overlayController: overlayController, accessibilityManager: accessibilityManager)
+    statusBar = StatusBarController(
+      stateManager: stateManager,
+      overlayController: overlayController,
+      accessibilityManager: accessibilityManager
+    )
   }
   
   private func setupConnections() {
@@ -46,15 +51,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       self?.stateManager.setState(.idle)
     }
     
-    // Когда accessibility включается — запускаем монитор
     accessibilityManager.$isEnabled
-      .dropFirst() // пропускаем начальное значение
+      .dropFirst()
       .sink { [weak self] isEnabled in
         if isEnabled {
-          print("🔓 Accessibility granted! Starting screenshot monitor...")
           self?.screenshotKeyMonitor.start()
         } else {
-          print("🔒 Accessibility revoked. Stopping screenshot monitor...")
           self?.screenshotKeyMonitor.stop()
         }
       }
@@ -63,12 +65,51 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     screenshotKeyMonitor.onScreenshot = { [weak self] in
       self?.handleScreenshot()
     }
+    
+    // ← НОВОЕ: реагируем только на изменения состояния Xcode
+    xcodeMonitor.$state
+      .sink { [weak self] state in
+        self?.handleXcodeState(state)
+      }
+      .store(in: &cancellables)
+  }
+  
+  private func handleXcodeState(_ state: XcodeMonitor.State) {
+    // Не прерываем screenshot, hello, scrolling
+    guard stateManager.currentState != .screenshot else { return }
+    guard stateManager.currentState != .hello else { return }
+    guard stateManager.currentState != .scrolling else { return }
+    
+    xcodeTimer?.invalidate()
+    
+    switch state {
+    case .runningInactive:
+      stateManager.setState(.xcodeAngry)
+      xcodeTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+        if self?.stateManager.currentState == .xcodeAngry {
+          self?.stateManager.setState(.idle)
+        }
+      }
+      
+    case .runningActive:
+      stateManager.setState(.xcodeHappy)
+      xcodeTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+        if self?.stateManager.currentState == .xcodeHappy {
+          self?.stateManager.setState(.idle)
+        }
+      }
+      
+    case .notRunning:
+      // Xcode закрыт — сразу в idle
+      if stateManager.currentState != .idle {
+        stateManager.setState(.idle)
+      }
+    }
   }
   
   private func handleScreenshot() {
-    // Защита от дублирования — если уже в состоянии скриншота, игнорируем
     guard stateManager.currentState != .screenshot else { return }
-    print("📸 Показываю эмоджи!")
+    xcodeTimer?.invalidate() // ← сбрасываем Xcode-таймер, если скриншот
     stateManager.setStateTemporarily(.screenshot, for: 2.0, thenReturn: .idle)
   }
 
@@ -76,6 +117,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     eventMonitor.stop()
     screenshotKeyMonitor.stop()
     accessibilityManager.stop()
+    xcodeMonitor.stop()
+    xcodeTimer?.invalidate()
     overlayController.stop()
   }
 }

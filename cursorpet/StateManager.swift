@@ -32,8 +32,15 @@ final class StateManager: ObservableObject {
   }
   
   func content(for state: BuddyState) -> BuddyContent {
-    if state == .screenshot {
+    switch state {
+    case .screenshot:
       return .emoji("📸")
+    case .xcodeHappy:
+      return .emoji("😊")
+    case .xcodeAngry:
+      return .emoji("😩")
+    default:
+      break
     }
     
     guard let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) else {

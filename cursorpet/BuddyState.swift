@@ -21,48 +21,39 @@ enum BuddyState: String, CaseIterable {
   case hello = "hello"
   case scrolling = "scrolling"
   case screenshot = "screenshot"
+  case xcodeHappy = "xcodeHappy"   // ← Xcode активен, пользователь в нём
+  case xcodeAngry = "xcodeAngry" // ← Xcode запущен, но пользователь в другом окне
   
-
-  
-  // in settings
   var displayName: String {
     switch self {
-    case .idle:
-      return "No movement"
-    case .hello:
-      return "Greetings"
-    case .scrolling:
-      return "Scrolling"
-    case .screenshot:
-      return "Screenshot"
+    case .idle: return "No movement"
+    case .hello: return "Greetings"
+    case .scrolling: return "Scrolling"
+    case .screenshot: return "Screenshot"
+    case .xcodeHappy: return "Xcode focused"
+    case .xcodeAngry: return "Xcode background"
     }
   }
   
-  // in settings
   var description: String {
     switch self {
-    case .idle:
-      return "Not active more than 5 sec"
-    case .hello:
-      return "Activating the app, 5 seconds"
-    case .scrolling:
-      return "When user scrolls"
-    case .screenshot:
-      return "When taking a screenshot"
+    case .idle: return "Not active more than 5 sec"
+    case .hello: return "Activating the app, 5 seconds"
+    case .scrolling: return "When user scrolls"
+    case .screenshot: return "When taking a screenshot"
+    case .xcodeHappy: return "When Xcode is active"
+    case .xcodeAngry: return "When Xcode runs but not focused"
     }
   }
   
-  // installed gif name - default if user didnt make his own
   var defaultGifName: String {
     switch self {
-    case .idle:
-      return "buddy_loading"
-    case .hello:
-      return "buddy_hello"
-    case .scrolling:
-      return "buddy_scrolling"
-    case .screenshot:
-      return "buddy_hello"
+    case .idle: return "buddy_loading"
+    case .hello: return "buddy_hello"
+    case .scrolling: return "buddy_scrolling"
+    case .screenshot: return "buddy_hello"
+    case .xcodeHappy: return "buddy_hello"
+    case .xcodeAngry: return "buddy_hello"
     }
   }
   

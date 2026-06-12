@@ -159,6 +159,10 @@ struct StateRow: View {
     case .hello:     return "👋"
     case .scrolling: return "📜"
     case .screenshot: return "📸"
+    case .xcodeHappy:
+      return "😊"
+    case .xcodeAngry:
+      return "😩"
     }
   }
   
