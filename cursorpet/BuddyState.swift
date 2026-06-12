@@ -1,28 +1,19 @@
 import Foundation
 
 enum BuddyContent {
-  case bundleGIF(name: String) // gif file name from bundle
-  case gif(url: URL) // gif on disk - maybe no need
-  case lottie(url: URL) // static image
+  case bundleGIF(name: String)
+  case gif(url: URL)
+  case lottie(url: URL)
   case emoji(String)
 }
 
-// modes
-// DONE hello when opened - done need to fix timing
-// not in xcode (if xcode is active and installed app) - angry
-// xcode project build success - happy
-// xcode project build fail - sad
-// xcode project building - building
-// DONE scrolling - reading - done
-// idle - when nothing happes - no scroll, no xcode building - no typing - thinking
-// DONE main mode - just on laptop  - done
 enum BuddyState: String, CaseIterable {
   case idle = "idle"
   case hello = "hello"
   case scrolling = "scrolling"
   case screenshot = "screenshot"
-  case xcodeHappy = "xcodeHappy"   // ← Xcode активен, пользователь в нём
-  case xcodeAngry = "xcodeAngry" // ← Xcode запущен, но пользователь в другом окне
+  case xcodeHappy = "xcodeHappy"
+  case xcodeAngry = "xcodeAngry"
   
   var displayName: String {
     switch self {

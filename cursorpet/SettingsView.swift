@@ -10,6 +10,9 @@ struct SettingsView: View {
   @AppStorage("offsetX")     var offsetX: Double = 16
   @AppStorage("offsetY")     var offsetY: Double = 8
   
+  // Dev Mode
+  @AppStorage("devMode") var isDevMode: Bool = false
+  
   private let bg      = Color(hex: "#141118")
   private let border  = Color.white.opacity(0.08)
   private let label   = Color.white.opacity(0.50)
@@ -23,7 +26,6 @@ struct SettingsView: View {
       SectionLabel("Animations", color: label)
       
       VStack(spacing: 4) {
-        // ← Используем allCases, чтобы screenshot всегда был виден
         ForEach(BuddyState.allCases, id: \.self) { state in
           StateRow(state: state, stateManager: stateManager, accessibilityManager: accessibilityManager)
         }
@@ -31,10 +33,46 @@ struct SettingsView: View {
       .padding(.horizontal, 12)
       .padding(.bottom, 4)
       
-      // Предупреждение о Accessibility — показываем если screenshot заблокирован
       if !accessibilityManager.isEnabled {
         accessibilityWarning
       }
+      
+      Divider()
+        .overlay(border)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+      
+      // Dev Mode Section
+      SectionLabel("Developer", color: label)
+      
+      VStack(spacing: 12) {
+        HStack {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Dev Mode")
+              .font(.system(size: 13, weight: .medium))
+              .foregroundColor(Color.white.opacity(0.9))
+            Text("Track Xcode focus")
+              .font(.system(size: 11))
+              .foregroundColor(Color.white.opacity(0.4))
+          }
+          Spacer()
+          
+          Toggle("", isOn: $isDevMode)
+            .toggleStyle(SwitchToggleStyle(tint: accent))
+            .help("Enables Xcode tracking")
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+          RoundedRectangle(cornerRadius: 8)
+            .fill(Color.white.opacity(0.03))
+            .overlay(
+              RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(Color.white.opacity(0.05), lineWidth: 0.5)
+            )
+        )
+      }
+      .padding(.horizontal, 18)
       
       Divider()
         .overlay(border)

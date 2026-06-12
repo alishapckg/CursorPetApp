@@ -6,10 +6,8 @@ final class StateManager: ObservableObject {
   
   private var isPlayingOnce = false
   
-  // callback for overlay controller - what to show
   var onStateChange: ((BuddyState, BuddyContent) -> Void)?
   
-  // to set state forever
   func setState(_ state: BuddyState) {
     guard !isPlayingOnce else { return }
     guard state != currentState else { return }
@@ -64,7 +62,7 @@ final class StateManager: ObservableObject {
   
   func setCustomFile(url: URL, for state: BuddyState) {
     guard let destinationDir = getApplicationSupportDirectory() else {
-      print("Fsailed to get access to Application Support folder")
+      print("Failed to get access to Application Support folder")
       return
     }
     
@@ -75,17 +73,13 @@ final class StateManager: ObservableObject {
       if FileManager.default.fileExists(atPath: destinationURL.path) {
         try FileManager.default.removeItem(at: destinationURL)
       }
-      
       try FileManager.default.copyItem(at: url, to: destinationURL)
-      
       print("File copied to \(destinationURL.path)")
-      
       UserDefaults.standard.set(destinationURL.path, forKey: state.userDefaultsForCustomFileKey)
       
       if state == currentState {
         notifyChange()
       }
-      
     } catch {
       print("Error copying file \(error.localizedDescription)")
     }
@@ -119,7 +113,6 @@ final class StateManager: ObservableObject {
     let fileManager = FileManager.default
     if let url = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
       let appDirectory = url.appendingPathComponent("GIFBuddy")
-      
       if !fileManager.fileExists(atPath: appDirectory.path) {
         try? fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true)
       }
