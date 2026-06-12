@@ -5,6 +5,7 @@ final class BuddyView: NSView {
   private var gifView: GIFPlayerView?
   
   private var lottieView: LottieAnimationView?
+  private var emojiLabel: NSTextField?
   
   func show(_ content: BuddyContent) {
     switch content {
@@ -15,6 +16,9 @@ final class BuddyView: NSView {
       
     case .lottie(let url):
       showLottie(url: url)
+      
+    case .emoji(let emoji):
+      showEmoji(emoji)
     }
   }
   
@@ -23,12 +27,13 @@ final class BuddyView: NSView {
       print("buddy view not found with name \(name)")
       return
     }
-    
+    removeEmoji()
     showGIF(url: url)
   }
   
   private func showGIF(url: URL) {
     removeLottie()
+    removeEmoji()
     
     if gifView == nil {
       let gv = GIFPlayerView(frame: bounds)
@@ -42,6 +47,7 @@ final class BuddyView: NSView {
   
   private func showLottie(url: URL) {
     removeGIF()
+    removeEmoji()
     
     removeLottie()
     
@@ -60,6 +66,30 @@ final class BuddyView: NSView {
     lv.play()
   }
   
+  private func showEmoji(_ emoji: String) {
+    removeGIF()
+    removeLottie()
+    removeEmoji()
+    
+    let label = NSTextField(labelWithString: emoji)
+    label.font = NSFont.systemFont(ofSize: 100)
+    label.alignment = .center
+    label.frame = bounds
+    label.autoresizingMask = [.width, .height]
+    label.backgroundColor = .clear
+    label.isBezeled = false
+    label.isEditable = false
+    
+    addSubview(label)
+    emojiLabel = label
+  }
+  
+  
+  private func removeEmoji() {
+    emojiLabel?.removeFromSuperview()
+    emojiLabel = nil
+  }
+  
   private func removeGIF() {
     gifView?.stop()
     gifView?.removeFromSuperview()
@@ -75,6 +105,7 @@ final class BuddyView: NSView {
   func stopAll() {
     removeGIF()
     removeLottie()
+    removeEmoji()
   }
   
   override init(frame frameRect: NSRect) {

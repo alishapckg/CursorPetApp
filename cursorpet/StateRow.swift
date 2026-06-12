@@ -120,6 +120,7 @@ struct StateRow: View {
     case .idle:      return "💤"
     case .hello:     return "👋"
     case .scrolling: return "📜"
+    case .screenshot: return "📸"
     }
   }
   

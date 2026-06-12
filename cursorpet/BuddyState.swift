@@ -4,6 +4,7 @@ enum BuddyContent {
   case bundleGIF(name: String) // gif file name from bundle
   case gif(url: URL) // gif on disk - maybe no need
   case lottie(url: URL) // static image
+  case emoji(String)
 }
 
 // modes
@@ -19,6 +20,7 @@ enum BuddyState: String, CaseIterable {
   case idle = "idle"
   case hello = "hello"
   case scrolling = "scrolling"
+  case screenshot = "screenshot"
   
   // in settings
   var displayName: String {
@@ -29,6 +31,8 @@ enum BuddyState: String, CaseIterable {
       return "Greetings"
     case .scrolling:
       return "Scrolling"
+    case .screenshot:
+      return "Screenshot"
     }
   }
   
@@ -41,6 +45,8 @@ enum BuddyState: String, CaseIterable {
       return "Activating the app, 5 seconds"
     case .scrolling:
       return "When user scrolls"
+    case .screenshot:
+      return "When taking a screenshot"
     }
   }
   
@@ -53,6 +59,8 @@ enum BuddyState: String, CaseIterable {
       return "buddy_hello"
     case .scrolling:
       return "buddy_scrolling"
+    case .screenshot:
+      return "buddy_hello"
     }
   }
   

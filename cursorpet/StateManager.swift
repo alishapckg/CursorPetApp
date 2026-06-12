@@ -32,6 +32,10 @@ final class StateManager: ObservableObject {
   }
   
   func content(for state: BuddyState) -> BuddyContent {
+    if state == .screenshot {
+      return .emoji("📸")
+    }
+    
     guard let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) else {
       return .bundleGIF(name: state.defaultGifName)
     }
