@@ -11,7 +11,6 @@ struct StateRow: View {
   @State private var previewImage: NSImage? = nil
   @State private var isHovered = false
   
-  // Для доступа к файловому сервису
   private let fileStorage = FileStorageService.shared
   
   private let cardBg      = Color.white.opacity(0.05)
