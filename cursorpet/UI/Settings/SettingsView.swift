@@ -9,15 +9,12 @@ struct SettingsView: View {
   @AppStorage("overlaySize") var size: Double = 128
   @AppStorage("offsetX")     var offsetX: Double = 16
   @AppStorage("offsetY")     var offsetY: Double = 8
-  
-  // Dev Mode
   @AppStorage("devMode") var isDevMode: Bool = false
   
   private let bg      = Color(hex: "#141118")
   private let border  = Color.white.opacity(0.08)
   private let label   = Color.white.opacity(0.50)
   private let accent  = Color(hex: "#00FF88")
-  private let textSec = Color.white.opacity(0.65)
   
   var body: some View {
     VStack(spacing: 0) {
@@ -100,7 +97,7 @@ struct SettingsView: View {
             .foregroundColor(Color.white.opacity(0.35))
         }
         Spacer()
-        Text("v1.0")
+        Text("v2.0 (Arch Refactored)")
           .font(.system(size: 11))
           .foregroundColor(Color.white.opacity(0.28))
       }
@@ -152,7 +149,6 @@ struct SettingsView: View {
         )
       }
       .buttonStyle(.plain)
-      .cursor(.pointingHand)
     }
     .padding(.horizontal, 14)
     .padding(.vertical, 10)
@@ -170,9 +166,7 @@ struct SettingsView: View {
   }
   
   private func openAccessibilitySettings() {
-    guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
-      return
-    }
+    guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
     NSWorkspace.shared.open(url)
   }
 }
@@ -224,26 +218,7 @@ private struct DarkSlider: View {
   }
 }
 
-// MARK: - Cursor Modifier
-
-private struct CursorModifier: ViewModifier {
-  let cursor: NSCursor
-  
-  func body(content: Content) -> some View {
-    content
-      .onHover { isHovered in
-        isHovered ? cursor.push() : cursor.pop()
-      }
-  }
-}
-
-extension View {
-  func cursor(_ cursor: NSCursor) -> some View {
-    modifier(CursorModifier(cursor: cursor))
-  }
-}
-
-// MARK: - Hex Color Helper
+// MARK: - Color Helper
 
 extension Color {
   init(hex: String) {

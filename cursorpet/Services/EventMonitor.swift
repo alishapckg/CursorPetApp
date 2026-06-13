@@ -21,7 +21,7 @@ final class EventMonitor {
   
   func stop() {
     if let scrollMonitor {
-
+      
       NSEvent.removeMonitor(scrollMonitor)
     }
     

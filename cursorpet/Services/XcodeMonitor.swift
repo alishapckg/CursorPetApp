@@ -5,8 +5,8 @@ final class XcodeMonitor: ObservableObject {
   
   enum State {
     case notRunning
-    case runningInactive  // запущен, но не frontmost
-    case runningActive    // запущен и frontmost
+    case runningInactive
+    case runningActive
   }
   
   @Published private(set) var state: State = .notRunning

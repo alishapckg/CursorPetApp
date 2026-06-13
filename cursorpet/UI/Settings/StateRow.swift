@@ -11,6 +11,9 @@ struct StateRow: View {
   @State private var previewImage: NSImage? = nil
   @State private var isHovered = false
   
+  // Для доступа к файловому сервису
+  private let fileStorage = FileStorageService.shared
+  
   private let cardBg      = Color.white.opacity(0.05)
   private let cardActive  = Color(hex: "#00FF88").opacity(0.12)
   private let cardBorder  = Color.white.opacity(0.08)
@@ -22,16 +25,14 @@ struct StateRow: View {
   private let textDim     = Color.white.opacity(0.20)
   
   private var isActive: Bool { stateManager.currentState == state }
-  var hasCustom: Bool { stateManager.hasCustomFile(for: state) }
+  var hasCustom: Bool { fileStorage.getCustomFileURL(for: state) != nil }
   
-  /// true если это screenshot и accessibility выключен
   private var isScreenshotDisabled: Bool {
     state == .screenshot && !accessibilityManager.isEnabled
   }
   
   private var activeFilePath: String? {
-    if let custom = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey),
-       FileManager.default.fileExists(atPath: custom) { return custom }
+    if let custom = fileStorage.getCustomFileURL(for: state) { return custom.path }
     return Bundle.main.url(forResource: state.defaultGifName, withExtension: "gif")?.path
   }
   
@@ -58,13 +59,13 @@ struct StateRow: View {
             .frame(width: 52, height: 52)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .opacity(isDropTargeted ? 0.4 : 1)
-            .blur(radius: isScreenshotDisabled ? 6 : 0) // ← блюр если недоступно
+            .blur(radius: isScreenshotDisabled ? 6 : 0)
             .overlay(
               isScreenshotDisabled ?
-                Image(systemName: "lock.fill")
-                  .font(.system(size: 16, weight: .semibold))
-                  .foregroundColor(Color.white.opacity(0.6))
-                : nil
+              Image(systemName: "lock.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color.white.opacity(0.6))
+              : nil
             )
         } else {
           Text(stateEmoji)
@@ -72,11 +73,11 @@ struct StateRow: View {
             .opacity(isDropTargeted ? 0.3 : 1)
             .overlay(
               isScreenshotDisabled ?
-                Image(systemName: "lock.fill")
-                  .font(.system(size: 14, weight: .semibold))
-                  .foregroundColor(Color.white.opacity(0.6))
-                  .offset(y: -2)
-                : nil
+              Image(systemName: "lock.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color.white.opacity(0.6))
+                .offset(y: -2)
+              : nil
             )
         }
         
@@ -88,7 +89,7 @@ struct StateRow: View {
       }
       .frame(width: 52, height: 52)
       .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
-        guard !isScreenshotDisabled else { return false } // ← блокируем дроп
+        guard !isScreenshotDisabled else { return false }
         return handleDrop(providers: providers)
       }
       
@@ -110,9 +111,8 @@ struct StateRow: View {
           .font(.system(size: 12))
           .foregroundColor(isScreenshotDisabled ? textSec.opacity(0.4) : textSec)
         
-        if hasCustom,
-           let path = UserDefaults.standard.string(forKey: state.userDefaultsForCustomFileKey) {
-          Text(URL(fileURLWithPath: path).lastPathComponent)
+        if let url = fileStorage.getCustomFileURL(for: state) {
+          Text(url.lastPathComponent)
             .font(.system(size: 11))
             .foregroundColor(accent)
         } else {
@@ -128,7 +128,10 @@ struct StateRow: View {
       HStack(spacing: 6) {
         if hasCustom && !isScreenshotDisabled {
           DarkIconButton(systemName: "arrow.counterclockwise", help: "Back to default") {
-            stateManager.resetToDefault(for: state)
+            fileStorage.resetCustomFile(for: state)
+            if stateManager.currentState == state {
+              stateManager.setState(state)
+            }
             loadPreview()
           }
         }
@@ -154,19 +157,13 @@ struct StateRow: View {
   }
   
   private var stateEmoji: String {
-    switch state {
-    case .idle:      
-      return "💤"
-    case .hello:     
-      return "👋"
-    case .scrolling: 
-      return "📜"
-    case .screenshot: 
-      return "📸"
-    case .xcodeHappy:
-      return "😊"
-    case .xcodeAngry:
-      return "😩"
+    switch self.state {
+    case .idle:      return "💤"
+    case .hello:     return "👋"
+    case .scrolling: return "📜"
+    case .screenshot: return "📸"
+    case .xcodeHappy: return "😊"
+    case .xcodeAngry: return "😩"
     }
   }
   
@@ -186,7 +183,7 @@ struct StateRow: View {
     }
     guard let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
     let count = CGImageSourceGetCount(src)
-    let index = count > 1 ? count / 2 : 0
+    let index = Int.random(in: 0..<count)
     guard let cg = CGImageSourceCreateImageAtIndex(src, index, nil) else { return nil }
     return NSImage(cgImage: cg, size: NSSize(width: cg.width, height: cg.height))
   }
@@ -204,8 +201,12 @@ struct StateRow: View {
     }
     panel.begin { response in
       guard response == .OK, let url = panel.url else { return }
-      stateManager.setCustomFile(url: url, for: state)
-      loadPreview()
+      self.fileStorage.setCustomFile(url: url, for: state)
+      
+      if self.stateManager.currentState == self.state {
+        self.stateManager.setState(self.state)
+      }
+      self.loadPreview()
     }
   }
   
@@ -218,15 +219,18 @@ struct StateRow: View {
             let url  = URL(dataRepresentation: data, relativeTo: nil),
             ["gif","lottie","json"].contains(url.pathExtension.lowercased()) else { return }
       DispatchQueue.main.async {
-        stateManager.setCustomFile(url: url, for: state)
-        loadPreview()
+        self.fileStorage.setCustomFile(url: url, for: state)
+        if self.stateManager.currentState == self.state {
+          self.stateManager.setState(self.state)
+        }
+        self.loadPreview()
       }
     }
     return true
   }
 }
 
-// MARK: - Dark Icon Button
+// MARK: - UI Components (Helpers)
 
 private struct DarkIconButton: View {
   let systemName: String
@@ -252,8 +256,6 @@ private struct DarkIconButton: View {
     .help(help)
   }
 }
-
-// MARK: - Dark Text Button
 
 private struct DarkTextButton: View {
   let title: String

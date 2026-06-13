@@ -8,11 +8,8 @@ final class AccessibilityManager: ObservableObject {
   private var timer: Timer?
   
   func startMonitoring() {
-    // Проверяем сразу
     checkStatus()
     
-    // И потом каждую секунду — когда пользователь даст разрешение в настройках,
-    // приложение узнает об этом без перезапуска
     timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
       self?.checkStatus()
     }
