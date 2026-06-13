@@ -42,9 +42,9 @@ enum BuddyState: String, CaseIterable {
     case .idle: return "buddy_loading"
     case .hello: return "buddy_hello"
     case .scrolling: return "buddy_scrolling"
-    case .screenshot: return "buddy_hello"
-    case .xcodeHappy: return "buddy_hello"
-    case .xcodeAngry: return "buddy_hello"
+    case .screenshot: return "kermit_screenshot"
+    case .xcodeHappy: return "buddy_happy"
+    case .xcodeAngry: return "buddy_angry"
     }
   }
   

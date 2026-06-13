@@ -155,10 +155,14 @@ struct StateRow: View {
   
   private var stateEmoji: String {
     switch state {
-    case .idle:      return "💤"
-    case .hello:     return "👋"
-    case .scrolling: return "📜"
-    case .screenshot: return "📸"
+    case .idle:      
+      return "💤"
+    case .hello:     
+      return "👋"
+    case .scrolling: 
+      return "📜"
+    case .screenshot: 
+      return "📸"
     case .xcodeHappy:
       return "😊"
     case .xcodeAngry:
