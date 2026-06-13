@@ -41,7 +41,6 @@ final class XcodeMonitor: ObservableObject {
       newState = .notRunning
     }
     
-    // Публикуем только при изменении
     if newState != lastState {
       lastState = newState
       state = newState
