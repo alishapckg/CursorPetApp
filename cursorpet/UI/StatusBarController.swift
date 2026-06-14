@@ -17,7 +17,11 @@ final class StatusBarController {
   
   private func setup() {
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    statusItem?.button?.title = "🐾"
+    if let button = statusItem?.button {
+      let image = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "Buddy")
+      image?.isTemplate = true
+      button.image = image
+    }
     statusItem?.menu = makeMenu()
   }
   
