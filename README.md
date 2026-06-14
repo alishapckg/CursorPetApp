@@ -11,7 +11,7 @@ The duck reacts to your behavior-scrolling, taking screenshots, or switching app
 ### Features
 - 🦆 Cursor Tracking: Smoothly follows your mouse pointer across all monitors.
 - 👨‍💻 Developer Integration: Shows distinct animations when Xcode is active versus running in the background.
-- 🎨 Customization: Replace the default duck with any GIF, Lottie animation & set unique animations for different states via Drag & Drop.
+- 🎨 Customization: Replace the default duck with any GIF & set unique animations for different states via Drag & Drop.
 
 ### Installation
 To install the app using the pre-compiled .dmg release:
