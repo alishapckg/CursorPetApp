@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		4FFFEEAA2FD6CF93000E36B4 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 4FFFEEA92FD6CF93000E36B4 /* Lottie */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		4FFFEE832FD1E626000E36B4 /* cursorpet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = cursorpet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -40,7 +36,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4FFFEEAA2FD6CF93000E36B4 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +78,6 @@
 			);
 			name = cursorpet;
 			packageProductDependencies = (
-				4FFFEEA92FD6CF93000E36B4 /* Lottie */,
 			);
 			productName = cursorpet;
 			productReference = 4FFFEE832FD1E626000E36B4 /* cursorpet.app */;
@@ -114,7 +108,6 @@
 			mainGroup = 4FFFEE7A2FD1E626000E36B4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				4FFFEEA82FD6CF93000E36B4 /* XCRemoteSwiftPackageReference "lottie-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4FFFEE842FD1E626000E36B4 /* Products */;
@@ -361,25 +354,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		4FFFEEA82FD6CF93000E36B4 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.6.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		4FFFEEA92FD6CF93000E36B4 /* Lottie */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4FFFEEA82FD6CF93000E36B4 /* XCRemoteSwiftPackageReference "lottie-spm" */;
-			productName = Lottie;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4FFFEE7B2FD1E626000E36B4 /* Project object */;
 }

@@ -3,7 +3,6 @@ import Foundation
 enum BuddyContent {
   case bundleGIF(name: String)
   case gif(url: URL)
-  case lottie(url: URL)
   case emoji(String)
 }
 

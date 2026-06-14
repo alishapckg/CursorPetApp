@@ -46,8 +46,6 @@ final class StateManager: ObservableObject {
     // 1. checking custom file
     if let customURL = fileStorage.getCustomFileURL(for: state) {
       switch customURL.pathExtension.lowercased() {
-      case "lottie", "json":
-        return .lottie(url: customURL)
       default:
         return .gif(url: customURL)
       }

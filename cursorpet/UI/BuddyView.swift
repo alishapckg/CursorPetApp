@@ -1,10 +1,7 @@
 import AppKit
-import Lottie
 
 final class BuddyView: NSView {
   private var gifView: GIFPlayerView?
-  
-  private var lottieView: LottieAnimationView?
   private var emojiLabel: NSTextField?
   
   func show(_ content: BuddyContent) {
@@ -13,9 +10,6 @@ final class BuddyView: NSView {
       showGIF(named: name)
     case .gif(let url):
       showGIF(url: url)
-      
-    case .lottie(let url):
-      showLottie(url: url)
       
     case .emoji(let emoji):
       showEmoji(emoji)
@@ -32,7 +26,6 @@ final class BuddyView: NSView {
   }
   
   private func showGIF(url: URL) {
-    removeLottie()
     removeEmoji()
     
     if gifView == nil {
@@ -45,30 +38,8 @@ final class BuddyView: NSView {
     self.gifView?.load(url: url)
   }
   
-  private func showLottie(url: URL) {
-    removeGIF()
-    removeEmoji()
-    
-    removeLottie()
-    
-    let lv = LottieAnimationView(filePath: url.path)
-    lv.frame = bounds
-    lv.autoresizingMask = [.width, .height]
-    
-    lv.contentMode = .scaleAspectFit
-    
-    lv.loopMode = .loop
-    
-    lv.backgroundBehavior = .pauseAndRestore
-    
-    addSubview(lv)
-    lottieView = lv
-    lv.play()
-  }
-  
   private func showEmoji(_ emoji: String) {
     removeGIF()
-    removeLottie()
     removeEmoji()
     
     let label = NSTextField(labelWithString: emoji)
@@ -96,15 +67,8 @@ final class BuddyView: NSView {
     gifView = nil
   }
   
-  private func removeLottie() {
-    lottieView?.stop()
-    lottieView?.removeFromSuperview()
-    lottieView = nil
-  }
-  
   func stopAll() {
     removeGIF()
-    removeLottie()
     removeEmoji()
   }
   
