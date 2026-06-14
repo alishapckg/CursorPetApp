@@ -19,6 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusBar: StatusBarController?
   
   func applicationDidFinishLaunching(_ notification: Notification) {
+    UserDefaults.standard.register(defaults: ["overlaySize": 128.0, "offsetX": 16.0, "offsetY": 8.0])
+    
     // 1. Init UI
     overlayController = OverlayController(settings: settings)
     overlayController.start()

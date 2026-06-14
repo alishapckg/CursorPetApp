@@ -18,20 +18,16 @@ final class SettingsService: SettingsServiceProtocol {
   }
   
   var overlaySize: CGFloat {
-    CGFloat(userDefaults.double(forKey: "overlaySize").nonZero ?? 64)
+    CGFloat(userDefaults.double(forKey: "overlaySize"))
   }
   
   var overlayOffset: CGPoint {
-    let x = userDefaults.double(forKey: "offsetX").nonZero ?? 16
-    let y = userDefaults.double(forKey: "offsetY").nonZero ?? 8
+    let x = userDefaults.double(forKey: "offsetX")
+    let y = userDefaults.double(forKey: "offsetY")
     return CGPoint(x: x, y: y)
   }
   
   var isDevMode: Bool {
     userDefaults.bool(forKey: "devMode")
   }
-}
-
-private extension Double {
-  var nonZero: Double? { self == 0 ? nil : self }
 }
