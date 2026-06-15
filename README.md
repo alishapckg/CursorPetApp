@@ -13,6 +13,37 @@ The duck reacts to your behavior-scrolling, taking screenshots, or switching app
 - 👨‍💻 Developer Integration: Shows distinct animations when Xcode is active versus running in the background.
 - 🎨 Customization: Replace the default duck with any GIF & set unique animations for different states via Drag & Drop.
 
+### Default GIFs
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="Assets/buddy_hello.gif" width="150" /><br/>
+      Hello, user!
+    </td>
+    <td align="center">
+      <img src="Assets/buddy_loading.gif" width="150" /><br/>
+      Idle
+    </td>
+    <td align="center">
+      <img src="Assets/buddy_scrolling.gif" width="150" /><br/>
+      User is scrolling
+    </td>
+    <td align="center">
+      <img src="Assets/buddy_happy.gif" width="150" /><br/>
+      Xcode Active (Dev mode)
+    </td>
+    <td align="center">
+      <img src="Assets/buddy_angry.gif" width="150" /><br/>
+      Xcode Inactive (Dev mode)
+    </td>
+    <td align="center">
+      <img src="Assets/kermit_screenshot.gif" width="150" /><br/>
+      Making screenshot with hotkeys
+    </td>
+  </tr>
+</table>
+
 ### Installation
 To install the app using the pre-compiled .dmg release:
 
