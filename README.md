@@ -29,6 +29,8 @@ The duck reacts to your behavior-scrolling, taking screenshots, or switching app
       <img src="Assets/buddy_scrolling.gif" width="150" /><br/>
       User is scrolling
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="Assets/buddy_happy.gif" width="150" /><br/>
       Xcode Active (Dev mode)
