@@ -163,6 +163,9 @@ struct StateRow: View {
     case .screenshot: return "📸"
     case .xcodeHappy: return "😊"
     case .xcodeAngry: return "😩"
+//    case .typing: return "⌨️"
+//    case .longIdle: return "😇"
+//    case .lowBattery: return "🪫"
     }
   }
   
