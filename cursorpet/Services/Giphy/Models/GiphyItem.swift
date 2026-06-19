@@ -7,8 +7,3 @@ struct GiphyItem: Decodable, Identifiable {
   let images: GiphyImages
   let url: String?
 }
-
-struct GiphyMeta: Decodable {
-  let status: Int
-  let msg: String
-}
