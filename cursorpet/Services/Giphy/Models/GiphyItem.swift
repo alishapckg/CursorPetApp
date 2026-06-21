@@ -8,13 +8,6 @@ struct GiphyItem: Decodable, Identifiable {
   let url: String?
 }
 
-struct GiphyImageInfo: Decodable {
-  let url: String?
-  let width: String?
-  let height: String?
-  let size: String?
-}
-
 struct GiphyMeta: Decodable {
   let status: Int
   let msg: String
