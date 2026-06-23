@@ -106,12 +106,29 @@ struct GiphyPickerView: View {
   // MARK: - Grid
 
   private var scrollGrid: some View {
-    ScrollView {
+    let items = searchText.isEmpty ? manager.trendingGifs : manager.searchResults
+    let hasMore = searchText.isEmpty ? manager.hasMoreTrending : manager.hasMoreSearch
+
+    return ScrollView {
       LazyVGrid(columns: columns, spacing: 8) {
-        let items = searchText.isEmpty ? manager.trendingGifs : manager.searchResults
         ForEach(items) { item in
           GiphyCell(item: item, isSelected: selectedGif?.id == item.id)
             .onTapGesture { selectGif(item) }
+        }
+
+        if hasMore {
+          Color.clear
+            .frame(height: 1)
+            .onAppear { loadMore() }
+        }
+
+        if manager.isLoadingMore {
+          ProgressView()
+            .progressViewStyle(.circular)
+            .scaleEffect(0.6)
+            .tint(accent)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
         }
       }
       .padding(.horizontal, 16)
@@ -127,6 +144,16 @@ struct GiphyPickerView: View {
         await manager.fetchTrending()
       } else {
         await manager.search(query: searchText)
+      }
+    }
+  }
+
+  private func loadMore() {
+    Task {
+      if searchText.isEmpty {
+        await manager.loadMoreTrending()
+      } else {
+        await manager.loadMoreSearch()
       }
     }
   }
