@@ -1,11 +1,5 @@
 import Foundation
 
-struct GiphySearchResponse: Decodable {
-  let data: [GiphyItem]
-  let meta: GiphyMeta
-  let pagination: GiphyPagination?
-}
-
 struct GiphyItem: Decodable, Identifiable {
   let id: String
   let title: String
