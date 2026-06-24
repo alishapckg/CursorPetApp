@@ -8,18 +8,6 @@ struct GiphyItem: Decodable, Identifiable {
   let url: String?
 }
 
-struct GiphyImages: Decodable {
-  let original: GiphyImageInfo
-  let fixedWidth: GiphyImageInfo?
-  let downsized: GiphyImageInfo?
-
-  enum CodingKeys: String, CodingKey {
-    case original
-    case fixedWidth = "fixed_width"
-    case downsized
-  }
-}
-
 struct GiphyImageInfo: Decodable {
   let url: String?
   let width: String?
