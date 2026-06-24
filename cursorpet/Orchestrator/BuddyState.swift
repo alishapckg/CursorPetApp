@@ -6,7 +6,8 @@ enum BuddyContent {
   case emoji(String) // need to remove
 }
 
-enum BuddyState: String, CaseIterable {
+enum BuddyState: String, CaseIterable, Identifiable {
+  var id: String { rawValue }
   case idle = "idle"
   case hello = "hello"
   case scrolling = "scrolling"

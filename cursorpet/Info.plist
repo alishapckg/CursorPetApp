@@ -2,13 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppleEventsUsageDescription</key>
-	<string>Need to track system events (for example, scrolling).</string>
-	<key>NSAccessibilityUsageDescription</key>
-	<string>Need to track making screenshots and Xcode activity in dev mode.</string>
-	<key>LSUIElement</key>
-	<true/>
-	<key>com.apple.security.app-sandbox</key>
-	<false/>
+<key>NSAppleEventsUsageDescription</key>
+<string>Need to track system events (for example, scrolling).</string>
+<key>NSAccessibilityUsageDescription</key>
+<string>Need to track making screenshots and Xcode activity in dev mode.</string>
+<key>LSUIElement</key>
+<true/>
+<key>com.apple.security.app-sandbox</key>
+<false/>
+<key>GIPHY_API_KEY</key>
+<string>$(GIPHY_API_KEY)</string>
 </dict>
 </plist>

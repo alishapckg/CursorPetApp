@@ -11,6 +11,8 @@ struct SettingsView: View {
   @AppStorage("offsetY")     var offsetY: Double = 8
   @AppStorage("devMode") var isDevMode: Bool = false
   
+  @State private var giphyPickerState: BuddyState?
+  
   private let bg      = Color(hex: "#141118")
   private let border  = Color.white.opacity(0.08)
   private let label   = Color.white.opacity(0.50)
@@ -24,11 +26,21 @@ struct SettingsView: View {
       
       VStack(spacing: 4) {
         ForEach(BuddyState.allCases, id: \.self) { state in
-          StateRow(state: state, stateManager: stateManager, accessibilityManager: accessibilityManager)
+          StateRow(
+            state: state,
+            stateManager: stateManager,
+            accessibilityManager: accessibilityManager,
+            onBrowseGiphy: { giphyPickerState = $0 }
+          )
         }
       }
       .padding(.horizontal, 12)
       .padding(.bottom, 4)
+      .sheet(item: $giphyPickerState) { state in
+        GiphyPickerView(buddyState: state) {
+          stateManager.setState(state)
+        }
+      }
       
       if !accessibilityManager.isEnabled {
         accessibilityWarning

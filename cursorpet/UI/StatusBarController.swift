@@ -58,6 +58,7 @@ final class StatusBarController {
     window.titlebarAppearsTransparent = true
     window.appearance = NSAppearance(named: .darkAqua)
     window.isMovableByWindowBackground = true
+    window.level = .floating
     
     // position below the status bar icon
     // need to layout first so frame.size is known

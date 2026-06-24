@@ -6,6 +6,7 @@ struct StateRow: View {
   let state: BuddyState
   @ObservedObject var stateManager: StateManager
   @ObservedObject var accessibilityManager: AccessibilityManager
+  let onBrowseGiphy: (BuddyState) -> Void
   
   @State private var isDropTargeted = false
   @State private var previewImage: NSImage? = nil
@@ -135,6 +136,7 @@ struct StateRow: View {
           }
         }
         if !isScreenshotDisabled {
+          DarkTextButton("GIPHY") { onBrowseGiphy(state) }
           DarkTextButton("Change…") { pickFile() }
         }
       }
