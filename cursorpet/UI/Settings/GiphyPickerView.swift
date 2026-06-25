@@ -199,42 +199,35 @@ private struct GiphyCell: View {
   private let accent = Color(hex: "#00FF88")
 
   var body: some View {
-    ZStack(alignment: .bottomTrailing) {
-      Group {
-        if let img = nsImage {
-          Image(nsImage: img)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-        } else {
-          Rectangle()
-            .fill(Color.white.opacity(0.08))
-            .overlay(
-              ProgressView()
-                .progressViewStyle(.circular)
-                .scaleEffect(0.5)
-                .tint(.white.opacity(0.4))
-            )
+    RoundedRectangle(cornerRadius: 8)
+      .fill(Color.white.opacity(0.08))
+      .aspectRatio(1, contentMode: .fill)
+      .overlay(
+        Group {
+          if let img = nsImage {
+            Image(nsImage: img)
+              .resizable()
+              .scaledToFill()
+          }
+        }
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+      .overlay(alignment: .bottomTrailing) {
+        if isSelected {
+          Image(systemName: "checkmark.circle.fill")
+            .font(.system(size: 18))
+            .foregroundColor(accent)
+            .background(Circle().fill(Color(hex: "#141118")).frame(width: 16, height: 16))
+            .offset(x: -4, y: -4)
         }
       }
-
-      if isSelected {
-        Image(systemName: "checkmark.circle.fill")
-          .font(.system(size: 18))
-          .foregroundColor(accent)
-          .background(Circle().fill(Color(hex: "#141118")).frame(width: 16, height: 16))
-          .offset(x: -4, y: -4)
-      }
-    }
-    .frame(height: 120)
-    .clipped()
-    .cornerRadius(8)
-    .overlay(
-      RoundedRectangle(cornerRadius: 8)
-        .strokeBorder(isSelected ? accent : Color.white.opacity(0.08),
-                     lineWidth: isSelected ? 2 : 0.5)
-    )
-    .contentShape(Rectangle())
-    .task { await loadImage() }
+      .overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .strokeBorder(isSelected ? accent : Color.white.opacity(0.08),
+                       lineWidth: isSelected ? 2 : 0.5)
+      )
+      .contentShape(Rectangle())
+      .task { await loadImage() }
   }
 
   private func loadImage() async {
