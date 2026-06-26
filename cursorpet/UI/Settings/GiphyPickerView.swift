@@ -40,29 +40,48 @@ struct GiphyPickerView: View {
       .padding(.bottom, 8)
 
       // Search
-      HStack {
-        Image(systemName: "magnifyingglass")
-          .foregroundColor(.white.opacity(0.4))
-        TextField("Search GIFs…", text: $searchText)
-          .textFieldStyle(.plain)
-          .font(.system(size: 14))
-          .foregroundColor(.white)
-          .onSubmit { performSearch() }
-        if !searchText.isEmpty {
-          Button { searchText = ""; performSearch() } label: {
-            Image(systemName: "xmark.circle.fill")
-              .foregroundColor(.white.opacity(0.4))
+      HStack(spacing: 8) {
+        HStack {
+          Image(systemName: "magnifyingglass")
+            .foregroundColor(.white.opacity(0.4))
+          TextField("Search GIFs…", text: $searchText)
+            .textFieldStyle(.plain)
+            .font(.system(size: 14))
+            .foregroundColor(.white)
+            .onSubmit { performSearch() }
+          if !searchText.isEmpty {
+            Button { searchText = ""; performSearch() } label: {
+              Image(systemName: "xmark.circle.fill")
+                .foregroundColor(.white.opacity(0.4))
+            }
+            .buttonStyle(.plain)
           }
-          .buttonStyle(.plain)
         }
+        .padding(10)
+        .background(Color.white.opacity(0.06))
+        .cornerRadius(8)
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .strokeBorder(Color.white.opacity(0.1), lineWidth: 0.5)
+        )
+
+        Button("Search") { performSearch() }
+          .buttonStyle(.plain)
+          .font(.system(size: 12, weight: .medium))
+          .foregroundColor(searchText.isEmpty ? .white.opacity(0.2) : accent)
+          .padding(.horizontal, 12)
+          .frame(height: 34)
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .fill(searchText.isEmpty ? Color.white.opacity(0.03) : accent.opacity(0.12))
+              .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                  .strokeBorder(searchText.isEmpty ? Color.white.opacity(0.05) : accent.opacity(0.3),
+                               lineWidth: 0.5)
+              )
+          )
+          .disabled(searchText.isEmpty)
       }
-      .padding(10)
-      .background(Color.white.opacity(0.06))
-      .cornerRadius(8)
-      .overlay(
-        RoundedRectangle(cornerRadius: 8)
-          .strokeBorder(Color.white.opacity(0.1), lineWidth: 0.5)
-      )
       .padding(.horizontal, 16)
       .padding(.bottom, 8)
 
