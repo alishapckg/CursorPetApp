@@ -43,44 +43,19 @@ struct StateRow: View {
       ZStack {
         RoundedRectangle(cornerRadius: 8)
           .fill(isDropTargeted ? accent.opacity(0.20) : previewBg)
-          .overlay(
-            RoundedRectangle(cornerRadius: 8)
-              .strokeBorder(
-                isDropTargeted ? accent : cardBorder,
-                style: StrokeStyle(lineWidth: isDropTargeted ? 1.5 : 0.5,
-                                   dash: isDropTargeted ? [4, 3] : [])
-              )
-          )
-        
+
         if let img = previewImage {
           Image(nsImage: img)
             .resizable()
-            .scaledToFill()
-            .frame(width: 52, height: 52)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .aspectRatio(contentMode: .fill)
             .opacity(isDropTargeted ? 0.4 : 1)
             .blur(radius: isScreenshotDisabled ? 6 : 0)
-            .overlay(
-              isScreenshotDisabled ?
-              Image(systemName: "lock.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color.white.opacity(0.6))
-              : nil
-            )
         } else {
           Text(stateEmoji)
             .font(.system(size: 26))
             .opacity(isDropTargeted ? 0.3 : 1)
-            .overlay(
-              isScreenshotDisabled ?
-              Image(systemName: "lock.fill")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color.white.opacity(0.6))
-                .offset(y: -2)
-              : nil
-            )
         }
-        
+
         if isDropTargeted {
           Image(systemName: "arrow.down.circle.fill")
             .font(.system(size: 20, weight: .semibold))
@@ -88,6 +63,22 @@ struct StateRow: View {
         }
       }
       .frame(width: 52, height: 52)
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+      .overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .strokeBorder(
+            isDropTargeted ? accent : cardBorder,
+            style: StrokeStyle(lineWidth: isDropTargeted ? 1.5 : 0.5,
+                               dash: isDropTargeted ? [4, 3] : [])
+          )
+      )
+      .overlay(
+        isScreenshotDisabled ?
+        Image(systemName: "lock.fill")
+          .font(.system(size: 16, weight: .semibold))
+          .foregroundColor(Color.white.opacity(0.6))
+        : nil
+      )
       .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
         guard !isScreenshotDisabled else { return false }
         return handleDrop(providers: providers)
