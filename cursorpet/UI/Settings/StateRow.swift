@@ -128,6 +128,8 @@ struct StateRow: View {
         }
         if !isScreenshotDisabled {
           DarkTextButton("GIPHY") { onBrowseGiphy(state) }
+            .fixedSize(horizontal: true, vertical: false)
+            .layoutPriority(1)
           DarkTextButton("Change…") { pickFile() }
         }
       }
@@ -267,6 +269,7 @@ private struct DarkTextButton: View {
       Text(title)
         .font(.system(size: 12))
         .foregroundColor(hovered ? Color(hex: "#F5F3FF") : Color.white.opacity(0.75))
+        .fixedSize(horizontal: true, vertical: false)
         .padding(.horizontal, 10)
         .frame(height: 26)
         .background(
