@@ -141,6 +141,8 @@ final class GiphyManager: ObservableObject {
       }
     } catch {
       self.error = error.localizedDescription
+      isLoading = false
+      isLoadingMore = false
     }
   }
 }

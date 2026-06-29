@@ -13,7 +13,9 @@ final class EventMonitor {
   
   // watching how much not active - going to idle status
   var idleTimeout: TimeInterval = 0.5
-  
+
+  deinit { stop() }
+
   func start() {
     startScrollMonitor()
     startIdleTracking()

@@ -6,6 +6,7 @@ final class ScreenshotKeyMonitor {
   
   private var eventTap: CFMachPort?
   private var runLoopSource: CFRunLoopSource?
+  private var runLoop: CFRunLoop?
   
   static var isAccessibilityEnabled: Bool {
     let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: false]
@@ -58,7 +59,9 @@ final class ScreenshotKeyMonitor {
     
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       guard let source = self?.runLoopSource else { return }
-      CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+      let rl = CFRunLoopGetCurrent()
+      self?.runLoop = rl
+      CFRunLoopAddSource(rl, source, .commonModes)
       CGEvent.tapEnable(tap: tap, enable: true)
       CFRunLoopRun()
     }
@@ -70,5 +73,9 @@ final class ScreenshotKeyMonitor {
     }
     eventTap = nil
     runLoopSource = nil
+    if let rl = runLoop {
+      CFRunLoopStop(rl)
+      runLoop = nil
+    }
   }
 }

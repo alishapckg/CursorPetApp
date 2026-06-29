@@ -60,7 +60,11 @@ final class OverlayController {
   
   func stop() {
     positionTimer?.invalidate()
+    positionTimer = nil
     buddyView?.stopAll()
+    buddyView?.removeFromSuperview()
+    buddyView = nil
     window?.orderOut(nil)
+    window = nil
   }
 }

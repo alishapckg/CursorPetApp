@@ -189,12 +189,12 @@ struct StateRow: View {
     guard !isScreenshotDisabled else { return }
     
     let panel = NSOpenPanel()
-    panel.title = "Choose animation for «\(state.displayName)»"
-    panel.message = "Supported: GIF, Lottie (.lottie, .json)"
+    panel.title = "Choose GIF for «\(state.displayName)»"
+    panel.message = "Supported: GIF"
     panel.allowsMultipleSelection = false
     panel.canChooseDirectories = false
     if #available(macOS 12.0, *) {
-      panel.allowedContentTypes = [.gif, UTType(filenameExtension: "lottie")!, .json]
+      panel.allowedContentTypes = [.gif]
     }
     panel.begin { response in
       guard response == .OK, let url = panel.url else { return }
@@ -214,7 +214,7 @@ struct StateRow: View {
     provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
       guard let data = item as? Data,
             let url  = URL(dataRepresentation: data, relativeTo: nil),
-            ["gif","lottie","json"].contains(url.pathExtension.lowercased()) else { return }
+            ["gif"].contains(url.pathExtension.lowercased()) else { return }
       DispatchQueue.main.async {
         self.fileStorage.setCustomFile(url: url, for: state)
         if self.stateManager.currentState == self.state {
